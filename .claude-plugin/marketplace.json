@@ -1,0 +1,14 @@
+{
+  "name": "askpay-sdlc",
+  "description": "Project-agnostic SDLC workflow used by AskPay",
+  "owner": {
+    "name": "AkiraTomori"
+  },
+  "plugins": [
+    {
+      "name": "sdlc",
+      "source": "./plugins/sdlc",
+      "description": "Scoped SDLC skills and four specialist agents"
+    }
+  ]
+}

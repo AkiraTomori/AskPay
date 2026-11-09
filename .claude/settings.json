@@ -1,0 +1,45 @@
+{
+  "extraKnownMarketplaces": {
+    "askpay-sdlc": {
+      "source": {
+        "source": "github",
+        "repo": "AkiraTomori/AskPay",
+        "ref": "main"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "sdlc@askpay-sdlc": true
+  },
+  "permissions": {
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr merge *)",
+      "Bash(forge script *)",
+      "Bash(forge create *)",
+      "Bash(cast send *)",
+      "Bash(npm run deploy *)",
+      "Bash(vercel *)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Read(./.env)",
+      "Read(./**/.env)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-actions.cjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

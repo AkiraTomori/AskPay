@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "sdlc",
+  "version": "1.0.0",
+  "description": "Project-agnostic software delivery skills: scope, design, implement, verify, review and propose changes, with optional specialists. Project context and approvals come from the active repository and user.",
+  "author": {
+    "name": "AkiraTomori"
+  }
+}

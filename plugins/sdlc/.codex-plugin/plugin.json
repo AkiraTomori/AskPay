@@ -1,0 +1,24 @@
+{
+  "name": "sdlc",
+  "version": "1.0.0",
+  "description": "Reusable, project-agnostic software delivery workflow with namespaced skill commands.",
+  "author": {
+    "name": "AkiraTomori"
+  },
+  "interface": {
+    "displayName": "SDLC Workflow",
+    "shortDescription": "Specify, design, implement, verify and review any project",
+    "longDescription": "Six core skills plus five optional specialists. Uses the active repository's context, stack, branch conventions and approvals; never assumes a particular project or automatically advances between stages.",
+    "developerName": "AkiraTomori",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Choose the next scoped SDLC step for this repository",
+      "Implement one approved vertical slice",
+      "Verify and prepare a scoped pull request"
+    ]
+  }
+}
