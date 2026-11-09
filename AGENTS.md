@@ -1,15 +1,17 @@
 # AskPay — Agent Context
 
-**Trạng thái (09/11/2026): CHUẨN BỊ.** Chưa có mã ứng dụng. Kế hoạch ở [docs/PLAN.md](docs/PLAN.md) (đề xuất). Spec ở [docs/spec/](docs/spec/) (đang soạn, **chưa duyệt**). Convention ở [docs/conventions/](docs/conventions/README.md) (đề xuất). Hackathon Team1 Vietnam UniHack: **hạn nộp 23:59 ngày 21/11/2026**, Demo Day 30/11.
+**Trạng thái (09/11/2026): CHUẨN BỊ.** Chưa có mã ứng dụng. Mục lục tài liệu ở [docs/README.md](docs/README.md); kế hoạch ở [docs/runbook/plan.md](docs/runbook/plan.md). Spec, kiến trúc và convention đều ở trạng thái **đề xuất, chưa duyệt**. Hackathon Team1 Vietnam UniHack: **hạn nộp 23:59 ngày 21/11/2026**, Demo Day 30/11.
 
 ## Đọc trước khi làm bất cứ việc gì
-1. [docs/PLAN.md](docs/PLAN.md): pitch, phạm vi MVP, kiến trúc, lịch theo ngày.
-2. [docs/spec/](docs/spec/): hành vi và tiêu chí chấp nhận `AP-xx-ACnn`. **Spec đã duyệt là quyền cao nhất về hành vi.**
-3. [docs/conventions/](docs/conventions/README.md): cách viết code backend, frontend, contract.
+1. [docs/README.md](docs/README.md): mục lục, thứ tự đọc, **thứ tự ưu tiên khi các file lệch nhau**.
+2. [docs/spec/askpay-v1.md](docs/spec/askpay-v1.md): hành vi và tiêu chí chấp nhận `AP-xx-ACnn`. **Spec đã duyệt là quyền cao nhất về hành vi.**
+3. [docs/architecture/system-design.md](docs/architecture/system-design.md): nguyên tắc P1–P5 và quyết định T-xx. Chữ ký contract ở [contracts.md](docs/architecture/contracts.md), endpoint ở [api.md](docs/architecture/api.md).
+4. [docs/conventions/](docs/conventions/README.md): cách viết code backend, frontend, contract.
+5. [docs/runbook/plan.md](docs/runbook/plan.md): lộ trình, quyền của agent (§5), cắt việc (§7).
 
 ## Luật cứng
 - **Chỉ viết mã ứng dụng** (`apps/`, `packages/`, `contracts/`) **cho slice đã được owner duyệt.** Spec hoặc design chưa duyệt thì chỉ được sửa tài liệu.
-- **Giữ phạm vi MVP** ([PLAN §2](docs/PLAN.md)). Mọi thứ ở cột "Để sau" là roadmap, không làm. Cần cắt việc thì cắt theo thứ tự ở PLAN §4.
+- **Giữ phạm vi MVP** ([plan §2](docs/runbook/plan.md)). Mọi thứ ở cột "Để sau" là roadmap, không làm. Cần cắt việc thì cắt theo thứ tự ở plan §7.
 - **On-chain:**
   - Chỉ dùng **Avalanche Fuji (43113)**. Mainnet bị cấm nếu owner chưa yêu cầu rõ ràng.
   - Mỗi lần broadcast (deploy, đăng ký root, gửi tx) phải được owner đồng ý trước. Khi xin, nêu rõ mạng, ví ký, contract và hàm sẽ gọi.
@@ -30,7 +32,7 @@ Skill nằm ở [plugins/sdlc/skills/](plugins/sdlc/skills/); bản sao cho host
 | Khi nào | Skill | Đầu ra trong repo này |
 |---|---|---|
 | Làm rõ hành vi, phạm vi, tiêu chí chấp nhận | `/sdlc:spec <phạm vi>` | `docs/spec/` (ID `AP-xx`, `AP-xx-ACnn`, quyết định mở `Q-xx`) |
-| Slice có giao diện contract, luồng x402, checker hoặc cấu trúc module mới | `/sdlc:design <slice>` | `docs/design/<slice>.md` |
+| Slice có giao diện contract, luồng x402, checker hoặc cấu trúc module mới | `/sdlc:design <slice>` | Cập nhật `docs/architecture/` (hoặc `docs/design/<slice>.md` nếu chỉ riêng slice đó) |
 | Cần cắt spec thành việc nhỏ demo được | `/sdlc:to-tickets <spec>` | Danh sách ticket (chỉ đăng lên tracker khi owner đồng ý) |
 | Viết mã cho một slice **đã duyệt** | `/sdlc:implement <slice>` (kèm `/sdlc:tdd` nếu có ranh giới hành vi rõ) | Mã + test trên nhánh `feat/…` |
 | Kiểm tra hành vi với bằng chứng thật | `/sdlc:verify <phạm vi>` | Báo cáo: đã chạy gì, đạt, hỏng, chưa kiểm |
@@ -53,7 +55,7 @@ Skill nằm ở [plugins/sdlc/skills/](plugins/sdlc/skills/); bản sao cho host
 
 **Ưu tiên của hackathon:**
 - Chạy được end-to-end trên Fuji sớm (mốc 12/11), rồi mới làm đẹp.
-- Trễ lịch quá 1 ngày thì báo owner và đề xuất cắt theo PLAN §4. Không âm thầm giảm chất lượng.
+- Trễ lịch quá 1 ngày thì báo owner và đề xuất cắt theo plan §7. Không âm thầm giảm chất lượng.
 
 ## Định nghĩa xong
 - `npm run verify` xanh: format, lint, typecheck, Vitest, `forge fmt --check`, `forge test`. Lệnh này sẽ được thêm ở slice nền móng.

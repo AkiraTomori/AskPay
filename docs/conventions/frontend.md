@@ -10,6 +10,7 @@ apps/web/src/
     page.tsx             # màn hình hỏi
     dashboard/page.tsx
     questions/[qid]/page.tsx
+    verify/page.tsx
   features/
     ask/
       components/        # QuestionForm, PriceNotice, AnswerCard, CitationCard…
@@ -64,6 +65,7 @@ Không bao giờ hiện "Đã trả tiền" hay "Đã xác minh" trước khi c�
 
 ## 4. Style và giao diện
 
+- Theo [design-system.md](../product/design-system.md) (bắt buộc).
 - Tailwind CSS. Màu và khoảng cách lấy từ token khai báo một chỗ (`globals.css`), không giá trị tuỳ tiện.
 - Truy cập được bằng bàn phím; nút có nhãn; màu không phải tín hiệu duy nhất (Paid/Refunded có cả chữ và icon).
 - **Disclaimer pháp lý luôn hiển thị**: "Thông tin tham khảo, không thay thế tư vấn pháp lý."

@@ -10,7 +10,7 @@
 | Monorepo | npm workspaces: `apps/*`, `packages/*` | `contracts/` nằm ngoài |
 | Validation, hợp đồng API | `zod` trong `packages/shared` | Backend validate, frontend import kiểu |
 | Chain client | `viem` | Dùng cho cả server, web (qua wagmi) và script |
-| x402 | `@x402/core`, `@x402/evm` (v2) | Dùng kiểu dữ liệu và helper ký/kiểm EIP-3009; scheme escrow tự viết (xem PLAN §3.2). Không dùng gói `x402` v1 đã ngừng phát triển |
+| x402 | `@x402/core`, `@x402/evm` (v2) | Dùng kiểu dữ liệu và helper ký/kiểm EIP-3009; scheme `escrow` tự viết (xem [system-design T-01](../architecture/system-design.md#3-quyết-định-công-nghệ-và-đánh-đổi)). Không dùng gói `x402` v1 đã ngừng phát triển |
 | Merkle tree | `@openzeppelin/merkle-tree` | Khớp `MerkleProof` của OpenZeppelin ở on-chain |
 | Lint/format | ESLint + typescript-eslint + Prettier; `forge fmt` cho Solidity | Cấu hình Prettier giống Fablewelf |
 | Test | Vitest (+ `supertest`, Testing Library); Foundry | |
