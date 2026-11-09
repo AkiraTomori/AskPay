@@ -1,0 +1,29 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+
+# Secrets: wallet keys, RPC and LLM API keys live only here
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Next.js
+**/.next/
+**/next-env.d.ts
+**/*.tsbuildinfo
+
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
+
+# Local data
+*.sqlite
+*.sqlite-journal
+
+# Local Claude settings
+.claude/settings.local.json
