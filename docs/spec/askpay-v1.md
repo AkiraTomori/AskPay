@@ -177,12 +177,12 @@ Một câu trả lời **đạt** khi thoả cả ba điều kiện:
 
 ## 9. Ảnh hưởng tới dữ liệu và API (mức đặc tả)
 
-- **API:** một endpoint hỏi (402 → trả → kết quả), một endpoint đọc kết quả theo qid, một endpoint cho dashboard. Hình dạng request/response chốt ở bước design, dưới dạng schema trong `packages/shared`.
+- **API:** một endpoint hỏi (402 → trả → kết quả), một endpoint đọc kết quả theo qid, các endpoint cho dashboard và trang tự xác minh. Chi tiết ở [`../architecture/api.md`](../architecture/api.md); hình dạng chính xác là schema trong `packages/shared`.
 - **Server lưu:** câu hỏi, câu trả lời, trích dẫn, tx hash, theo qid. Đây là dữ liệu để hiển thị. **Trạng thái tiền lấy từ chain.**
 - **On-chain lưu:** trạng thái từng qid (người hỏi, số tiền, hạn, trạng thái), `lawRoot`, địa chỉ provider và checker, event cho mọi thay đổi.
 - **Không lưu:** dữ liệu cá nhân ngoài địa chỉ ví. Không có email hay tên.
 
-## 10. Ánh xạ sang lịch (PLAN §4)
+## 10. Ánh xạ sang lịch ([runbook/plan.md §6](../runbook/plan.md))
 
 | Ngày | Tính năng |
 |---|---|

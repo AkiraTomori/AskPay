@@ -1,6 +1,6 @@
 # Backend convention (TypeScript, Express 5)
 
-Áp dụng cho `apps/api`. Rút từ convention backend của Fablewelf, bỏ phần cơ sở dữ liệu quan hệ và xác thực người dùng (AskPay không có tài khoản; ví là danh tính).
+Áp dụng cho `apps/api`. Bản đầy đủ của cây module và ranh giới ở [codebase.md](../architecture/codebase.md); mã lỗi đầy đủ ở [api.md](../architecture/api.md). Rút từ convention backend của Fablewelf, bỏ phần cơ sở dữ liệu quan hệ và xác thực người dùng (AskPay không có tài khoản; ví là danh tính).
 
 ## 1. Cấu trúc: theo tính năng, tối đa 3–4 file mỗi module
 
@@ -14,6 +14,7 @@ apps/api/src/
     errors.ts            # AppError + middleware lỗi
     http.ts              # validate bằng schema zod, gửi envelope
     chain.ts             # một viem publicClient + walletClient cho cả process
+    tx-queue.ts          # hàng đợi gửi tx tuần tự cho ví provider (T-10)
     store.ts             # một kết nối SQLite cho cả process
   modules/
     ask/                 # POST /ask: điều phối trả tiền → trả lời → kiểm tra → settle
@@ -28,10 +29,13 @@ apps/api/src/
       answer.service.ts
     checker/             # so khớp nguyên văn + LLM-judge + ký verdict EIP-712
       checker.service.ts
-    history/             # GET /questions cho dashboard
+    history/             # GET /questions, /stats, /corpus, /health
       history.routes.ts
       history.service.ts
       history.repository.ts   # SQLite
+    indexer/             # poll getLogs → chain_events (T-09)
+      indexer.service.ts
+      indexer.repository.ts
 apps/api/test/           # phản chiếu src/; harness ở gốc test/
 ```
 
@@ -63,7 +67,8 @@ apps/api/test/           # phản chiếu src/; harness ở gốc test/
 | 402 | *(phản hồi x402)* | chưa có `PAYMENT-SIGNATURE` |
 | 402 | `PAYMENT_INVALID` | chữ ký sai, hết hạn, sai số tiền, sai `nonce`/`qid` |
 | 404 | `QUESTION_NOT_FOUND` | không có `qid` |
-| 409 | `QUESTION_ALREADY_SETTLED` | gửi lại thanh toán cho câu đã settle |
+| 409 | `QUESTION_ALREADY_SETTLED` | gửi lại thanh toán cho câu đã giữ tiền hoặc đã chốt |
+| 409 | `QUESTION_MISMATCH` | nội dung câu hỏi khác câu đã báo giá cho `qid` |
 | 429 | `RATE_LIMITED` | vượt giới hạn |
 | 502 | `LLM_UNAVAILABLE` | LLM lỗi hoặc quá thời gian; tiền đã nằm trong escrow nên người hỏi được hoàn tiền |
 | 503 | `CHAIN_UNAVAILABLE` | RPC Fuji không trả lời |
