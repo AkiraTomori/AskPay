@@ -1,6 +1,6 @@
 # AskPay — Agent Context
 
-**Trạng thái (09/11/2026): CHUẨN BỊ.** Chưa có mã ứng dụng. Mục lục tài liệu ở [docs/README.md](docs/README.md); kế hoạch ở [docs/runbook/plan.md](docs/runbook/plan.md). Spec, kiến trúc và convention đều ở trạng thái **đề xuất, chưa duyệt**.. Hackathon Team1 Vietnam UniHack: **hạn nộp 23:59 ngày 21/11/2026**, Demo Day 30/11.
+**Trạng thái (09/11/2026): CHUẨN BỊ.** Chưa có mã ứng dụng. Mục lục tài liệu ở [docs/README.md](docs/README.md); kế hoạch ở [docs/runbook/plan.md](docs/runbook/plan.md). Spec, kiến trúc và convention đều ở trạng thái **đề xuất, chưa duyệt**. Hackathon Team1 Vietnam UniHack: **hạn nộp 23:59 ngày 21/11/2026**, Demo Day 30/11.
 
 ## Đọc trước khi làm bất cứ việc gì
 1. [docs/README.md](docs/README.md): mục lục, thứ tự đọc, **thứ tự ưu tiên khi các file lệch nhau**.
