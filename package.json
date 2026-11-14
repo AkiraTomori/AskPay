@@ -19,7 +19,8 @@
     "verify:contracts": "node scripts/verify-contracts.mjs",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run verify:contracts",
     "corpus": "tsc --build && node packages/corpus/dist/cli.js",
-    "abi": "node scripts/gen-abi.mjs"
+    "abi": "node scripts/gen-abi.mjs",
+    "e2e:contract": "tsc --build && node --env-file=.env.e2e scripts/e2e-contract-fuji.mjs"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

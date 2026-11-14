@@ -75,6 +75,12 @@ forge script script/RegisterLawRoot.s.sol --rpc-url fuji --account askpay-owner 
 cd ..
 npm run abi                         # → packages/shared/src/abi, deployments.ts
 
+# 2b. E2E contract trên Fuji (K4, CẦN OWNER DUYỆT: gửi giao dịch)
+# Tạo .env.e2e ở thư mục gốc (đã gitignore) bằng editor: PROVIDER_PRIVATE_KEY, CHECKER_PRIVATE_KEY,
+# E2E_PAYER_PRIVATE_KEY (ví hackathon có ≥ 0,05 USDC Fuji). Script không in khoá.
+npm run e2e:contract                # chạy khô: kiểm điều kiện và mô phỏng, KHÔNG gửi gì
+npm run e2e:contract -- --send      # gửi thật: Refunded (NoCitation), Refunded (InvalidCitation), Paid
+
 # 3. Chạy
 npm run dev                         # api :4000, web :3000
 ```
