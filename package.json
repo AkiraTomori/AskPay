@@ -13,11 +13,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "typecheck": "tsc --build && tsc -p packages/shared/tsconfig.test.json",
+    "typecheck": "tsc --build && tsc -p packages/shared/tsconfig.test.json && tsc -p packages/corpus/tsconfig.test.json && tsc -p apps/api/tsconfig.test.json",
     "pretest": "tsc --build",
     "test": "vitest run",
     "verify:contracts": "node scripts/verify-contracts.mjs",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run verify:contracts"
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run verify:contracts",
+    "corpus": "tsc --build && node packages/corpus/dist/cli.js"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
