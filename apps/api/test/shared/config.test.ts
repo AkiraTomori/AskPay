@@ -2,7 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { loadConfig } from '../../src/shared/config.js';
 
 const key = 'ab'.repeat(32);
-const base = { RPC_URL: 'https://api.avax-test.network/ext/bc/C/rpc', PROVIDER_PRIVATE_KEY: key };
+const checkerKey = 'cd'.repeat(32);
+const llm = { LLM_API_KEY: 'k-secret', LLM_MODEL: 'vendor/model:free' };
+// The environment without one variable, for the "required" checks.
+const without = (env: Record<string, string>, name: string) =>
+  Object.fromEntries(Object.entries(env).filter(([key]) => key !== name));
+const base = {
+  RPC_URL: 'https://api.avax-test.network/ext/bc/C/rpc',
+  PROVIDER_PRIVATE_KEY: key,
+  CHECKER_PRIVATE_KEY: checkerKey,
+  ...llm,
+};
 
 describe('loadConfig', () => {
   it('applies the documented defaults and adds the 0x prefix to a bare key', () => {
@@ -33,9 +43,9 @@ describe('loadConfig', () => {
     expect(message).not.toContain(secret);
   });
 
-  it('requires the RPC url and the provider key', () => {
+  it('requires everything a server needs to take money AND settle it', () => {
     expect(() => loadConfig({})).toThrow(/RPC_URL/);
-    expect(() => loadConfig({ RPC_URL: base.RPC_URL })).toThrow(/PROVIDER_PRIVATE_KEY/);
+    expect(() => loadConfig(without(base, 'PROVIDER_PRIVATE_KEY'))).toThrow(/PROVIDER_PRIVATE_KEY/);
   });
 
   it('rejects a zero or non-numeric price', () => {
@@ -44,13 +54,12 @@ describe('loadConfig', () => {
   });
 
   describe('checker key', () => {
-    const checkerKey = 'cd'.repeat(32);
+    it('is required, because a server without it takes money it can never settle', () => {
+      expect(() => loadConfig(without(base, 'CHECKER_PRIVATE_KEY'))).toThrow(/CHECKER_PRIVATE_KEY/);
+    });
 
-    it('is optional until the pipeline needs it, and gets the 0x prefix', () => {
-      expect(loadConfig(base).checkerPrivateKey).toBeUndefined();
-      expect(loadConfig({ ...base, CHECKER_PRIVATE_KEY: checkerKey }).checkerPrivateKey).toBe(
-        `0x${checkerKey}`,
-      );
+    it('gets the 0x prefix', () => {
+      expect(loadConfig(base).checkerPrivateKey).toBe(`0x${checkerKey}`);
     });
 
     it('refuses the provider key reused as the checker key, in either spelling (T-04)', () => {
@@ -73,17 +82,39 @@ describe('loadConfig', () => {
     });
   });
 
-  describe('LLM settings', () => {
-    it('are optional until the pipeline needs them', () => {
-      expect(loadConfig(base).llm).toBeUndefined();
+  describe('log scanning', () => {
+    it('defaults to the public Fuji RPC limit of 100 blocks per read and a 24 hour lookback', () => {
+      expect(loadConfig(base)).toMatchObject({ logRangeBlocks: 100, scanLookbackBlocks: 43_200 });
     });
 
-    it('build an LLM config when the key and model are set, defaulting to OpenRouter with JSON mode', () => {
-      const config = loadConfig({
-        ...base,
-        LLM_API_KEY: 'k-secret',
-        LLM_MODEL: 'vendor/model:free',
-      });
+    it('can be raised for a better RPC, and refuses nonsense', () => {
+      expect(loadConfig({ ...base, LOG_RANGE_BLOCKS: '2000' }).logRangeBlocks).toBe(2000);
+      expect(() => loadConfig({ ...base, LOG_RANGE_BLOCKS: '0' })).toThrow(/LOG_RANGE_BLOCKS/);
+      expect(() => loadConfig({ ...base, SCAN_LOOKBACK_BLOCKS: 'abc' })).toThrow(
+        /SCAN_LOOKBACK_BLOCKS/,
+      );
+    });
+  });
+
+  describe('demo fake citation', () => {
+    it('is off unless explicitly turned on', () => {
+      expect(loadConfig(base).demoFakeCitation).toBe(false);
+      expect(loadConfig({ ...base, DEMO_FAKE_CITATION: 'true' }).demoFakeCitation).toBe(true);
+      expect(() => loadConfig({ ...base, DEMO_FAKE_CITATION: 'yes' })).toThrow(
+        /DEMO_FAKE_CITATION/,
+      );
+    });
+  });
+
+  describe('LLM settings', () => {
+    it('are required: without an LLM every paid question would be refunded', () => {
+      expect(() => loadConfig(without(without(base, 'LLM_API_KEY'), 'LLM_MODEL'))).toThrow(
+        /LLM_API_KEY/,
+      );
+    });
+
+    it('build an LLM config, defaulting to OpenRouter with JSON mode', () => {
+      const config = loadConfig(base);
       expect(config.llm).toEqual({
         provider: 'openrouter',
         apiKey: 'k-secret',
@@ -104,11 +135,13 @@ describe('loadConfig', () => {
     });
 
     it('refuse a key without a model and a model without a key, naming only the variable', () => {
-      expect(() => loadConfig({ ...base, LLM_API_KEY: 'k-secret' })).toThrow(/LLM_MODEL/);
-      expect(() => loadConfig({ ...base, LLM_MODEL: 'm' })).toThrow(/LLM_API_KEY/);
+      const noModel = without(base, 'LLM_MODEL');
+      const noKey = without(base, 'LLM_API_KEY');
+      expect(() => loadConfig(noModel)).toThrow(/LLM_MODEL/);
+      expect(() => loadConfig(noKey)).toThrow(/LLM_API_KEY/);
       let message = '';
       try {
-        loadConfig({ ...base, LLM_API_KEY: 'k-secret' });
+        loadConfig(noModel);
       } catch (error) {
         message = (error as Error).message;
       }

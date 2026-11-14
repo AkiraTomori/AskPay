@@ -24,6 +24,8 @@
     "ask:client": "tsc --build && node --env-file=.env.e2e scripts/ask-client.mjs",
     "answer:live": "tsc --build && node --env-file=.env.poc scripts/answer-live.mjs",
     "check:live": "tsc --build && node --env-file=.env.poc scripts/check-live.mjs",
+    "e2e:ask": "tsc --build && node --env-file=.env.poc --env-file=.env.e2e scripts/e2e-ask.mjs",
+    "judge:injection": "tsc --build && node --env-file=.env.poc scripts/judge-injection.mjs",
     "e2e:contract": "tsc --build && node --env-file=.env.e2e scripts/e2e-contract-fuji.mjs"
   },
   "devDependencies": {
