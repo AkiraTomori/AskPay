@@ -73,6 +73,16 @@ export const refundReasonSchema = z.enum(refundReasonCodes);
 export const askAcceptedSchema = z.object({ qid: bytes32Schema, stage: questionStageSchema });
 export type AskAccepted = z.infer<typeof askAcceptedSchema>;
 
+// `details` of PAYMENT_INVALID when the payer cannot cover the price (AP-03-AC05): the UI shows the
+// balance, the price and a faucet link. Nothing is sent on-chain in that case.
+export const insufficientBalanceDetailsSchema = z.object({
+  reason: z.literal('INSUFFICIENT_BALANCE'),
+  balance: amountSchema,
+  price: amountSchema,
+  faucetUrl: z.string().url(),
+});
+export type InsufficientBalanceDetails = z.infer<typeof insufficientBalanceDetailsSchema>;
+
 export const citationSchema = z.object({
   lawId: bytes32Schema,
   dieu: z.number().int().positive(),

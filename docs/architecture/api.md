@@ -194,10 +194,13 @@ Câu bị hoàn tiền vẫn trả `200`, với `status: "REFUNDED"` và `reason
 | Quá 60 giây mà chưa chốt | `202` kèm `{ data: { qid, stage } }` (`askAcceptedSchema` trong `packages/shared`); client chuyển sang poll |
 | Hai request cùng chữ ký tới đồng thời | Chỉ một request gửi deposit. Request còn lại nhận `409 QUESTION_ALREADY_SETTLED`, `details` là trạng thái hiện tại. |
 | `validBefore` còn dưới 60 giây | `402 PAYMENT_INVALID`, không gửi tx |
+| Người hỏi không đủ token (AP-03-AC05) | `402 PAYMENT_INVALID`, `details` = `{ reason: "INSUFFICIENT_BALANCE", balance, price, faucetUrl }` (`insufficientBalanceDetailsSchema` trong `packages/shared`). Không có tx nào được gửi. |
 | Ví provider không đủ AVAX, hoặc hàng đợi tx đang lỗi | `503 CHAIN_UNAVAILABLE` **trước khi** giữ tiền |
 | Đã gửi deposit nhưng chưa biết kết quả | `202 { data: { qid, stage: "DEPOSITING" } }`. **Không** trả 402, để client không xin báo giá mới và trả tiền lần hai. |
 | LLM lỗi hoặc checker lỗi sau khi đã giữ tiền | `200`, `status: "REFUNDED"`, `reason: "ANSWER_FAILED"` (qua `refundByProvider`). Không trả mã 5xx. |
 | Server không chốt được (sai khoá, tx kẹt) | `202`, rồi poll. Tới `deadline` thì `status: "CLAIMABLE"` và người hỏi tự nhận lại tiền. |
+
+**Trạng thái triển khai (A4):** `POST /api/ask` dừng sau khi `Deposited`: trả `202 { qid, stage: "ANSWERING" }` kèm header `PAYMENT-RESPONSE` có `transaction` là tx deposit. Trả lời, checker và `settle` thuộc A5, nên cho tới lúc đó tiền nằm trong escrow tới `deadline` (rồi người hỏi tự `claimRefund`, hoặc provider gọi `refundByProvider`).
 
 Chi tiết từng đường lỗi: [system-design §5.6](./system-design.md).
 

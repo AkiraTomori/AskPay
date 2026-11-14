@@ -20,10 +20,14 @@ contracts/out/
 contracts/cache/
 contracts/broadcast/*/31337/
 contracts/broadcast/**/dry-run/
+contracts/broadcast/**/run-[0-9]*.json
+contracts/broadcast/**/*.lock
 
 # Local data
 *.sqlite
 *.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 
 # Local Claude settings
 .claude/settings.local.json
