@@ -22,11 +22,11 @@
 | **0:00** · Vấn đề | Slide 1 | — | "Hỏi AI về luật lao động thì nó hay bịa số Điều. Người dùng không có cách kiểm tra, và vẫn phải trả tiền." |
 | **0:20** · Hỏi | Gõ: *"Thời gian thử việc tối đa với công việc cần bằng cao đẳng là bao lâu?"* → Hỏi | Báo giá **0,05 USDC (~1.300đ)**; ví hỏi ký | "Trả theo từng câu, qua x402. Tiền chưa đi đâu cả, chỉ là chữ ký." |
 | **0:40** · Chờ | Ký | Timeline: Đã giữ tiền → Đang trả lời → Đang kiểm tra → Đang chốt | "Tiền đang nằm trong smart contract escrow, không nằm trong ví của chúng tôi." |
-| **1:00** · Paid | — | Câu trả lời trích **Điều 25 Khoản 2**; thẻ trích dẫn có ✓; badge **PAID**; bấm link Snowtrace | "Contract tự kiểm Merkle proof: Khoản này có thật trong Bộ luật Lao động, và đúng nguyên văn. Đạt thì mới trả tiền." |
+| **1:00** · Paid | — | Câu trả lời trích **Điều 25 Khoản 2**; thẻ trích dẫn có ✓; badge **PAID**; bấm link Snowtrace | "Contract tự kiểm Merkle proof: Khoản này có thật trong Bộ luật Lao động đã đăng ký. Contract cũng kiểm chữ ký của bộ kiểm tra. Chữ ký đó là kết luận của bộ kiểm tra rằng đoạn trích đúng nguyên văn và liên quan. Đạt thì mới trả tiền." |
 | **1:30** · Ngoài phạm vi | Hỏi: *"Nồng độ cồn bao nhiêu thì bị phạt khi lái xe máy?"* | "Không tìm thấy căn cứ…"; badge **ĐÃ HOÀN TIỀN** · `NO_CITATION` | "Không có căn cứ thì không mất tiền." |
-| **1:50** · Trích bịa | Hỏi: *"#demo-fake Làm thêm giờ tối đa bao nhiêu giờ một năm?"* | Badge **ĐÃ HOÀN TIỀN** · `INVALID_CITATION`; link tx hoàn tiền | "Lần này tôi cố tình cho server gửi một trích dẫn bịa. Chính blockchain từ chối, và tiền tự quay về." |
+| **1:50** · Giả lập server gian lận | Hỏi: *"#demo-fake Làm thêm giờ tối đa bao nhiêu giờ một năm?"* | Badge **ĐÃ HOÀN TIỀN** · `INVALID_CITATION`; link tx hoàn tiền | "Đây là giả lập: tôi cố tình cho server gian lận, gửi một Khoản có nội dung khác bản luật đã đăng ký. Merkle proof không khớp, nên contract tự hoàn tiền." |
 | **2:20** · Minh bạch | Mở `/dashboard` rồi `/verify` | Tỉ lệ hoàn tiền, kết quả eval; root trong repo = root on-chain | "Ai cũng tự kiểm được: corpus, Merkle root, contract đều công khai." |
-| **2:45** · Kết | Slide cuối | Roadmap | "Trích sai thì hoàn tiền, và chính blockchain xác nhận điều đó." |
+| **2:45** · Kết | Slide cuối | Roadmap | "Trích dẫn không qua kiểm tra thì hoàn tiền, và chính smart contract trả tiền lại cho bạn." |
 
 Nếu còn thời gian: tắt server, chờ quá hạn, bấm **"Nhận lại tiền"** từ ví (P5). Nên quay sẵn đoạn này vì phải chờ 10 phút.
 

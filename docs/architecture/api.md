@@ -28,7 +28,7 @@
 | 409 | `QUESTION_MISMATCH` | Nội dung câu hỏi khác câu đã báo giá cho `qid` |
 | 429 | `RATE_LIMITED` | Quá 20 báo giá mỗi phút mỗi IP (đề xuất) |
 | 502 | `LLM_UNAVAILABLE` | Chỉ ở `/health`; trong `/ask`, lỗi LLM được chuyển thành hoàn tiền |
-| 503 | `CHAIN_UNAVAILABLE` | RPC không trả lời **trước khi** giữ tiền |
+| 503 | `CHAIN_UNAVAILABLE` | **Trước khi** giữ tiền: RPC không trả lời, ví provider thiếu AVAX, hoặc hàng đợi tx đang lỗi. Sau khi đã giữ tiền thì không dùng mã này. |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước |
 
 ### Không có endpoint (cố ý)
@@ -147,19 +147,39 @@ Header `PAYMENT-RESPONSE` là base64 của `{ "success": true, "network": "eip15
     "noBasis": false,
     "citations": [
       {
-        "dieu": 25, "khoan": 2, "dieuTitle": "Thời gian thử việc",
+        "lawId": "0x…", "dieu": 25, "khoan": 2, "dieuTitle": "Thời gian thử việc",
         "quote": "không quá 60 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật từ cao đẳng trở lên",
         "text": "<nguyên văn đầy đủ của Khoản>",
         "textHash": "0x…",
+        "quoteHash": "0x…",
         "verifiedOnChain": true
       }
     ],
+    "answerHash": "0x…",
+    "citationsHash": "0x…",
     "tx": { "deposit": "0x…", "settle": "0x…" },
     "deadline": 1762700600,
     "createdAt": 1762699400000
   }
 }
 ```
+
+**Trường cam kết trích dẫn** (T-13, [contracts §4.4](./contracts.md)):
+
+- `quote` là chuỗi đã chuẩn hoá. `quoteHash = keccak256(utf8(quote))`.
+- `citations[]` giữ **đúng thứ tự** đã gửi `settle`. `citationsHash` là hash checker đã ký. Khi `PAID`, nó bằng `citationsHash` trong event `Paid`.
+- Người ngoài kiểm lại được mà không cần tin server, bằng `citationsHash()` của `packages/shared`. Băm lại `quote` của từng thẻ, dựng `Citation[]` với `lawId`, `dieu`, `khoan`, `textHash`, `quoteHash`, rồi tính hash. Kết quả phải bằng `citationsHash` trong event `Paid` của tx `settle` trên Snowtrace. v1 không có giao diện cho bước này (spec Q-13).
+- `answerHash` và `citationsHash` là `null` cho tới khi checker đã ký. Ví dụ: câu đang ở `ANSWERING`, hoặc bị hoàn tiền `NO_CITATION` hay `ANSWER_FAILED`.
+
+**Ý nghĩa của `verifiedOnChain`.** Đây là cờ do server tính theo quy tắc P2 ở system-design §7. Cờ này điều khiển dấu xác minh hai dòng trên thẻ trích dẫn (spec AP-07-AC02, Q-10). Nó **không** có nghĩa contract đã kiểm đoạn trích nằm trong nguyên văn: việc đó do checker kết luận và ký.
+
+| Tình huống | `verifiedOnChain` |
+|---|---|
+| Chưa có event (`PENDING`, `CLAIMABLE`) | `false` |
+| `REFUNDED` | `false` |
+| `PAID`, và hash tính lại từ `answer` và `citations[]` đang trả về khớp `answerHash` và `citationsHash` trong log `Paid` đọc qua RPC (không qua DB) | `true`. Ý nghĩa: Khoản có trong luật đã đăng ký, và đoạn trích đúng là đoạn checker đã ký. |
+| `PAID` nhưng hash không khớp (DB bị sửa hoặc ghi sai) | `false` cho mọi thẻ; server log `CITATIONS_MISMATCH` |
+| `PAID` nhưng RPC lỗi lúc đọc receipt | `false`, tạm thời; lần gọi sau đọc lại |
 
 Câu bị hoàn tiền vẫn trả `200`, với `status: "REFUNDED"` và `reason: "CHECKER_REJECTED"` (hoặc lý do khác). **Hoàn tiền là kết quả đúng, không phải lỗi HTTP.** Có hiện câu trả lời hay không phụ thuộc Q-04.
 
@@ -172,6 +192,14 @@ Câu bị hoàn tiền vẫn trả `200`, với `status: "REFUNDED"` và `reason
 | Gửi lại cùng chữ ký (replay) | `409 QUESTION_ALREADY_SETTLED` kèm `details` = kết quả hiện tại; không trừ tiền lần 2 |
 | Client mất kết nối giữa chừng | Server vẫn chạy tiếp tới khi chốt; client mở `/questions/<qid>` để xem |
 | Quá 60 giây mà chưa chốt | `202` kèm `{ data: { qid, stage } }`; client chuyển sang poll |
+| Hai request cùng chữ ký tới đồng thời | Chỉ một request gửi deposit. Request còn lại nhận `409 QUESTION_ALREADY_SETTLED`, `details` là trạng thái hiện tại. |
+| `validBefore` còn dưới 60 giây | `402 PAYMENT_INVALID`, không gửi tx |
+| Ví provider không đủ AVAX, hoặc hàng đợi tx đang lỗi | `503 CHAIN_UNAVAILABLE` **trước khi** giữ tiền |
+| Đã gửi deposit nhưng chưa biết kết quả | `202 { qid, stage: "DEPOSITING" }`. **Không** trả 402, để client không xin báo giá mới và trả tiền lần hai. |
+| LLM lỗi hoặc checker lỗi sau khi đã giữ tiền | `200`, `status: "REFUNDED"`, `reason: "ANSWER_FAILED"` (qua `refundByProvider`). Không trả mã 5xx. |
+| Server không chốt được (sai khoá, tx kẹt) | `202`, rồi poll. Tới `deadline` thì `status: "CLAIMABLE"` và người hỏi tự nhận lại tiền. |
+
+Chi tiết từng đường lỗi: [system-design §5.6](./system-design.md).
 
 ## 4. `GET /api/questions/:qid`
 

@@ -70,8 +70,8 @@ apps/api/test/           # phản chiếu src/; harness ở gốc test/
 | 409 | `QUESTION_ALREADY_SETTLED` | gửi lại thanh toán cho câu đã giữ tiền hoặc đã chốt |
 | 409 | `QUESTION_MISMATCH` | nội dung câu hỏi khác câu đã báo giá cho `qid` |
 | 429 | `RATE_LIMITED` | vượt giới hạn |
-| 502 | `LLM_UNAVAILABLE` | LLM lỗi hoặc quá thời gian; tiền đã nằm trong escrow nên người hỏi được hoàn tiền |
-| 503 | `CHAIN_UNAVAILABLE` | RPC Fuji không trả lời |
+| 502 | `LLM_UNAVAILABLE` | **Chỉ ở `/health`.** Trong `/ask`, LLM hay checker lỗi sau khi giữ tiền thì trả `200 REFUNDED · ANSWER_FAILED` qua `refundByProvider` ([api.md §3.3](../architecture/api.md)) |
+| 503 | `CHAIN_UNAVAILABLE` | Trước khi giữ tiền: RPC Fuji không trả lời, ví provider thiếu AVAX, hoặc hàng đợi tx lỗi |
 | 500 | `INTERNAL_ERROR` | lỗi không lường trước; chỉ log ở server |
 
 ## 4. Tiền và chain
@@ -79,6 +79,7 @@ apps/api/test/           # phản chiếu src/; harness ở gốc test/
 - Số tiền luôn là `bigint` theo đơn vị nhỏ nhất của token (USDC có 6 số lẻ). Chỉ đổi sang chuỗi hiển thị ở frontend. Không `number`, không `parseFloat`.
 - **Chain là nguồn sự thật** cho trạng thái tiền (`Open`, `Paid`, `Refunded`). SQLite chỉ lưu nội dung câu hỏi, câu trả lời và tx hash để hiển thị. Nếu hai bên lệch thì tin chain.
 - Mỗi lệnh ghi lên chain: đợi receipt, kiểm `status`, log tx hash. Không coi "đã gửi" là "đã xong".
+- Cũng không coi "chưa có receipt" là "thất bại": đọc `questions(qid).status` rồi mới quyết. Mọi tx chốt phải `simulateContract` trước khi gửi ([system-design §5.6](../architecture/system-design.md)).
 - Một ví server (provider) gửi tx tuần tự, không gửi song song (tránh trùng nonce của ví).
 - Địa chỉ contract và ABI lấy từ `packages/shared` (sinh từ `contracts/deployments/`), không chép tay.
 - Không có nhánh code nào nhắm mainnet trong MVP. `config.ts` từ chối mọi `CHAIN_ID` khác 43113.
