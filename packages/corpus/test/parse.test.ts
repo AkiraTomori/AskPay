@@ -31,8 +31,19 @@ describe('raw source and reproducibility (AP-01-AC01)', () => {
     expect(serializeKhoans(parseLaw(rawHtml))).toBe(serializeKhoans(khoans));
   });
 
-  it('AP-01-AC01: data/blld-2019.khoan.json is exactly what the parser produces (run `npm run corpus`)', () => {
-    expect(committedJson).toBe(serializeKhoans(khoans));
+  // `npm run corpus` adds textHash on top of the parser output (build-tree.ts, C2). Everything else
+  // must be exactly what the parser produces; the full file is pinned in build-tree.test.ts.
+  it('AP-01-AC01: data/blld-2019.khoan.json holds exactly the parser output plus textHash (run `npm run corpus`)', () => {
+    const withoutHash = (JSON.parse(committedJson) as (Khoan & { textHash: string })[]).map(
+      (k) => ({
+        dieu: k.dieu,
+        dieuTitle: k.dieuTitle,
+        chuong: k.chuong,
+        khoan: k.khoan,
+        text: k.text,
+      }),
+    );
+    expect(serializeKhoans(withoutHash)).toBe(serializeKhoans(khoans));
   });
 });
 

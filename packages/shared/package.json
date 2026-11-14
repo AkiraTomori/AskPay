@@ -12,12 +12,17 @@
       "types": "./dist/errors.d.ts",
       "default": "./dist/errors.js"
     },
+    "./leaf": {
+      "types": "./dist/leaf.d.ts",
+      "default": "./dist/leaf.js"
+    },
     "./money": {
       "types": "./dist/money.d.ts",
       "default": "./dist/money.js"
     }
   },
   "dependencies": {
+    "viem": "2.57.19",
     "zod": "4.6.7"
   }
 }

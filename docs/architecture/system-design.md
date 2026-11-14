@@ -389,6 +389,7 @@ Nhờ vậy, mọi `Deposited` đều có người chịu trách nhiệm chốt,
   - `data/blld-2019.khoan.json`: danh sách `{ dieu, khoan, dieuTitle, chuong, text, textHash }`.
   - `data/blld-2019.tree.json`: cây Merkle đã dump (lấy proof cho bất kỳ Khoản nào).
   - `data/blld-2019.root.txt`: root.
+  - `data/blld-2019.foundry-vectors.json`: vector chéo ngôn ngữ cho Foundry (chuỗi nguyên văn, `textHash`, leaf, proof, `quoteHash`, `citationsHash` của ca 0, 1 và 5 trích dẫn). Solidity tính lại từng giá trị từ chuỗi gốc rồi so với file này.
 - **Đăng ký:** `escrow.setLawRoot(lawId, root)` do owner gọi (cần duyệt broadcast). Đổi corpus thì root mới và phải đăng ký lại.
 
 ---
