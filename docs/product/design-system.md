@@ -87,12 +87,14 @@ Bốn bước ngang (dọc trên mobile): **Giữ tiền → Trả lời → Ki�
 ```
 ┃ Điều 25 · Khoản 2 — Thời gian thử việc          ← sans, đậm
 ┃ “không quá 60 ngày đối với công việc …”         ← serif, nghiêng
-┃ ✓ Đã xác minh on-chain        Xem nguyên văn ▾  ← paid / link
+┃ ✓ Khoản có trong luật đã đăng ký on-chain       ← paid, dòng chính
+┃   Đoạn trích và mức liên quan: checker đã ký    ← dòng phụ, chữ nhỏ, bắt buộc đi kèm
+┃                               Xem nguyên văn ▾  ← link
 ```
 
 - Viền trái 3px màu `seal`, giống lề công báo.
 - "Xem nguyên văn" mở ra toàn văn Khoản (serif) và **tô nền nhạt đúng đoạn được trích**.
-- Dấu ✓ chỉ hiện khi `PAID`. Khi bị hoàn tiền, viền chuyển `refund` và không có dấu ✓.
+- Dấu ✓ chỉ hiện khi `verifiedOnChain = true` (Paid và hash khớp event). Không bao giờ hiện dòng chính mà thiếu dòng phụ. Khi bị hoàn tiền, viền chuyển `refund` và không có dấu ✓.
 
 ### 4.4 `PriceTag`
 

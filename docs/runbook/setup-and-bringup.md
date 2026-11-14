@@ -45,9 +45,11 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | `LLM_MODEL` | theo Q-01 | |
 | `PRICE_UNITS` | `50000` | 0,05 USDC (Q-02) |
 | `QUOTE_TTL_SECONDS` | `300` | |
-| `DATABASE_PATH` | `./data/askpay.sqlite` | |
+| `DATABASE_PATH` | `./data/askpay.sqlite` | Khi deploy: trỏ vào thư mục mount của ổ đĩa lưu bền (Render disk hoặc volume của Railway), ví dụ `/var/data/askpay.sqlite`. Không để trên ổ đĩa tạm (system-design T-14). |
 | `DEMO_FAKE_CITATION` | `false` | Chỉ bật khi quay demo bước 4 |
 | `PORT` | `4000` | |
+
+Không có biến env cho `settleCutoff` (60 giây) và `pipelineBudget` (120 giây). Đây là hằng số cố định trong `config.ts`, để môi trường deploy không lệch spec (system-design §5.6 B).
 
 `apps/web/.env.local`: `API_ORIGIN=http://localhost:4000` (cho rewrite), `NEXT_PUBLIC_CHAIN_ID=43113`.
 

@@ -4,11 +4,11 @@
 
 ## 1. Hiểu nhanh trong 2 phút
 
-**Một câu:** AskPay là AI trả lời câu hỏi về Bộ luật Lao động. Bạn trả khoảng 1.300đ cho mỗi câu qua x402 trên Avalanche, và **chỉ mất tiền khi trích dẫn Điều/Khoản qua được kiểm tra của smart contract.**
+**Một câu:** AskPay là AI trả lời câu hỏi về Bộ luật Lao động. Bạn trả khoảng 1.300đ cho mỗi câu qua x402 trên Avalanche, và **chỉ mất tiền khi trích dẫn Điều/Khoản qua được kiểm tra.** Tiền nằm trong smart contract, và contract tự trả hoặc tự hoàn.
 
 **Ví dụ đời thường.** Bạn đi làm thêm và muốn biết công ty được bắt thử việc bao lâu.
 - Hỏi chatbot thường: nó trả lời "theo Điều 27, tối đa 6 tháng", nghe rất tự tin nhưng sai cả số Điều lẫn nội dung.
-- Hỏi AskPay: bạn ký trả 0,05 USDC. Tiền vào một "két giữ hộ" trên blockchain. AI trả lời và **bắt buộc dẫn nguyên văn Khoản 2 Điều 25**. Két tự kiểm tra Khoản đó có thật và đúng nguyên văn hay không. Đúng thì két trả tiền cho AskPay. Sai hoặc không dẫn được căn cứ thì két **tự trả tiền lại cho bạn**.
+- Hỏi AskPay: bạn ký trả 0,05 USDC. Tiền vào một "két giữ hộ" trên blockchain. AI trả lời và **bắt buộc dẫn nguyên văn Khoản 2 Điều 25**. Bộ kiểm tra (checker) xác nhận đoạn trích đúng nguyên văn, có liên quan, rồi ký. Két tự kiểm Khoản đó có thật trong Bộ luật đã đăng ký và kiểm chữ ký của checker. Đạt thì két trả tiền cho AskPay. Sai hoặc không dẫn được căn cứ thì két **tự trả tiền lại cho bạn**.
 
 **Từ điển cho người mới:**
 
@@ -17,7 +17,7 @@
 | x402 | Chuẩn "trả tiền qua HTTP": server trả mã 402 kèm giá, client ký trả rồi gửi lại |
 | Escrow | Két giữ hộ: giữ tiền tới khi điều kiện được kiểm xong |
 | Merkle proof | "Giấy chứng nhận" ngắn chứng minh một Khoản nằm trong bộ luật đã đăng ký, không cần đưa cả bộ luật lên chain |
-| Checker | Bộ kiểm tra độc lập (khoá riêng) xác nhận đoạn trích đúng nguyên văn và liên quan tới câu hỏi |
+| Checker | Bộ kiểm tra dùng khoá riêng, khác khoá nhận tiền; ở v1 do AskPay vận hành. Xác nhận đoạn trích đúng nguyên văn và liên quan tới câu hỏi, rồi ký kết luận |
 | Fuji | Mạng thử nghiệm của Avalanche |
 
 ## 2. Tiêu chí chấm điểm và cách AskPay đạt
@@ -26,18 +26,18 @@
 |---|---|---|---|
 | Kỹ thuật | 25 | Escrow + EIP-3009 `ReceiveWithAuthorization` + Merkle proof + chữ ký EIP-712 của checker; invariant/fuzz test Foundry; RAG có ràng buộc; bộ eval có số liệu | Chiếu `forge test`, kết quả eval |
 | Tích hợp Avalanche | 25 | Mọi khoản tiền và kết luận nằm on-chain trên Fuji; x402 với scheme `escrow` mới; dùng USDC/EIP-3009; finality nhanh và phí thấp làm micropayment khả thi | Link Snowtrace cho từng tx, contract đã verify |
-| Sáng tạo | 15 | "Trích sai thì hoàn tiền"; xác minh trích dẫn pháp luật bằng Merkle proof (chưa thấy ai làm cho luật Việt Nam) | Bước "trích bịa bị chain từ chối" |
+| Sáng tạo | 15 | "Không qua kiểm tra thì hoàn tiền"; xác minh Khoản luật được trích bằng Merkle proof (chưa thấy ai làm cho luật Việt Nam) | Bước "giả lập server gian lận, contract tự hoàn tiền" |
 | Tác động | 15 | Sinh viên đi làm thêm và người lao động tra quyền lợi với giá vài nghìn đồng; mở rộng được sang luật khác | Câu hỏi thật của sinh viên |
 | Thuyết trình | 10 | Kịch bản 3 phút cố định ([demo.md](../runbook/demo.md)) | — |
 | UI/UX & demo | 10 | Timeline từng bước, thẻ trích dẫn có dấu xác minh, trạng thái Paid/Refunded rõ ràng | — |
 
 ## 3. Input → Process → Output qua ví dụ
 
-| | Câu hợp lệ | Câu ngoài phạm vi | Trích bịa (demo) |
+| | Câu hợp lệ | Câu ngoài phạm vi | Giả lập server gian lận (demo) |
 |---|---|---|---|
 | **Input** | "Thử việc tối đa bao lâu nếu cần bằng cao đẳng?" | "Nồng độ cồn bao nhiêu thì bị phạt?" | "#demo-fake Làm thêm giờ tối đa bao nhiêu?" |
 | **Trả tiền** | 0,05 USDC vào escrow | 0,05 USDC vào escrow | 0,05 USDC vào escrow |
-| **AI** | Trích Điều 25 Khoản 2 | `noBasis`: không có căn cứ | Trích Điều 107 nhưng hash bị bịa |
+| **AI** | Trích Điều 25 Khoản 2 | `noBasis`: không có căn cứ | Trích Điều 107; server cố tình thay hash nguyên văn |
 | **Checker** | Đạt, ký `pass = true` | Không cần (không có trích dẫn) | Đạt (giả lập checker cũng sai; kiểm hash là việc của chain) |
 | **Contract** | Proof khớp → **Paid** | Không có trích dẫn → **Refunded** `NO_CITATION` | Proof không khớp → **Refunded** `INVALID_CITATION` |
 | **Output** | Câu trả lời + ✓ + link tx | "Không có căn cứ" + tiền về ví | Cảnh báo + tiền về ví |
@@ -78,7 +78,7 @@ Thêm một lối thoát: quá 10 phút chưa chốt → người hỏi tự g�
 
 ## 6. 12 câu hỏi giám khảo hay hỏi
 
-1. **"Server vừa là provider vừa là checker, vậy có gian lận được không?"** Checker dùng khoá khác, và contract từ chối nếu hai khoá trùng. Phần chain đảm bảo tuyệt đối là **trích dẫn có thật và đúng nguyên văn**; trích bịa thì không qua được dù server có muốn. Phần "liên quan hay không" ở v1 vẫn phải tin checker. Roadmap là checker độc lập có stake. Chúng tôi nói thẳng giới hạn này ([system-design §11](../architecture/system-design.md#11-giới-hạn-đã-biết)).
+1. **"Server vừa là provider vừa là checker, vậy có gian lận được không?"** Checker dùng khoá khác, và contract từ chối nếu hai khoá trùng. Phần chain đảm bảo là **Khoản được trích có thật trong văn bản đã đăng ký, và nguyên văn Khoản không bị sửa**. Server đưa ra một Khoản sai so với bản đăng ký thì không lấy được tiền. Phần "đoạn trích có nằm trong nguyên văn và có liên quan không" ở v1 vẫn phải tin checker. Chữ ký của checker cố định đúng đoạn trích đã duyệt. Nếu dữ liệu trên server bị sửa sau khi chốt, hash tính lại sẽ không khớp event `Paid` đọc từ chain, và dấu xác minh biến mất. Ai không muốn tin server thì tự tính lại bằng hàm công khai trong repo, rồi so với event trên Snowtrace. Roadmap là checker độc lập có stake. Chúng tôi nói thẳng giới hạn này ([system-design §11](../architecture/system-design.md#11-giới-hạn-đã-biết)).
 2. **"Sao không đưa cả bộ luật lên chain?"** Khoảng 1.000 Khoản sẽ tốn rất nhiều gas. Merkle root chỉ 32 byte; mỗi proof khoảng 10 hash.
 3. **"Đây có phải x402 thật không?"** Đúng giao thức x402 v2 (mã 402, header `PAYMENT-REQUIRED`, `PAYMENT-SIGNATURE`, `PAYMENT-RESPONSE`), nhưng dùng scheme `escrow` mới thay cho `exact`, vì `exact` không hoàn tiền được.
 4. **"Người dùng lợi dụng hỏi câu ngoài phạm vi để dùng miễn phí?"** Câu ngoài phạm vi chỉ nhận được "không có căn cứ", không có nội dung gì đáng giá. Server chỉ tốn một lần gọi LLM, và báo giá có giới hạn tần suất.
@@ -95,4 +95,6 @@ Thêm một lối thoát: quá 10 phút chưa chốt → người hỏi tự g�
 
 Làm một mình. Lộ trình ở [plan.md](../runbook/plan.md). Kịch bản 3 phút ở [demo.md](../runbook/demo.md).
 
-**Thông điệp kết:** *"Trích sai thì hoàn tiền, và chính blockchain xác nhận điều đó."*
+**Thông điệp kết:** *"Trích dẫn không qua kiểm tra thì hoàn tiền, và chính smart contract trả tiền lại cho bạn."*
+
+Mọi câu trong pitch phải nằm trong bảng lời khẳng định ở [spec §8](../spec/askpay-v1.md#8-ràng-buộc-và-yêu-cầu-phi-chức-năng) (Q-10).

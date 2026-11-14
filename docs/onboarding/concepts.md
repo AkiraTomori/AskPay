@@ -77,7 +77,7 @@ flowchart TD
 
 AskPay đảo ngược điều này: **chỉ thu tiền khi câu trả lời có căn cứ kiểm chứng được**, và việc kiểm chứng được giao cho blockchain chứ không phải lời hứa của công ty.
 
-**Tự kiểm tra:** AskPay có đảm bảo câu trả lời "đúng" 100% không? *(Không. Nó đảm bảo trích dẫn có thật và đúng nguyên văn; mức liên quan do checker đánh giá. Xem Cụm 8.)*
+**Tự kiểm tra:** AskPay có đảm bảo câu trả lời "đúng" 100% không? *(Không. Chain đảm bảo Khoản được trích có thật trong văn bản đã đăng ký. Đoạn trích có đúng nguyên văn không và có liên quan không là kết luận có chữ ký của checker. Xem Cụm 8.)*
 
 ## Cụm 3 — x402: trả tiền qua HTTP
 
@@ -177,7 +177,7 @@ Checker chạy bốn bước, dừng ở bước đầu tiên không đạt:
 
 Sau đó checker **ký kết luận** bằng EIP-712 với **khoá riêng**, khác khoá của provider. Contract chỉ chấp nhận chữ ký của đúng địa chỉ checker đã đăng ký.
 
-**Phân vai:** checker kiểm *nội dung* (khớp nguyên văn, có liên quan); chain kiểm *tính xác thực* (Khoản có thật, nguyên văn không bị sửa). Checker sai thì chain vẫn chặn trích dẫn giả.
+**Phân vai:** checker kiểm *nội dung* (khớp nguyên văn, có liên quan); chain kiểm *tính xác thực* (Khoản có thật, nguyên văn không bị sửa). Checker sai thì chain vẫn chặn một Khoản không có trong văn bản đã đăng ký. Nhưng nếu checker duyệt sai một đoạn trích **không** nằm trong nguyên văn, chain không phát hiện được.
 
 ## Cụm 9 — 5 nguyên tắc cần nhớ (P1–P5)
 
@@ -201,12 +201,12 @@ Sau đó checker **ký kết luận** bằng EIP-712 với **khoá riêng**, kh�
 6. Server gọi `settle` kèm proof. Két kiểm chữ ký checker, kiểm proof khớp root, rồi chuyển 0,05 USDC cho provider; event `Paid`.
 7. Trang kết quả hiện ĐÃ THANH TOÁN, thẻ trích dẫn có ✓, link Snowtrace.
 
-### Câu chuyện B: server bị ép trích bịa → Refunded
+### Câu chuyện B: giả lập server gian lận → Refunded
 
 1. Như trên đến bước 4, nhưng ở chế độ demo, `textHash` của trích dẫn bị thay bằng hash bịa trước khi gửi cho checker.
 2. Checker chỉ kiểm nội dung nên vẫn ký `pass = true` (giả lập checker cũng sai).
 3. Két kiểm chữ ký: hợp lệ. Kiểm proof: **không khớp root**. Két chuyển 0,05 USDC **về ví Lan**; event `Refunded(INVALID_CITATION)`.
-4. Kết luận: dù cả server lẫn checker đều sai, **chain vẫn chặn**.
+4. Kết luận: dù cả server lẫn checker đều sai, chain vẫn chặn một Khoản **khác bản đã đăng ký**. Đây là giả lập; trích dẫn bịa của LLM ngoài đời đã bị chặn off-chain từ trước (chỉ được chọn ID ứng viên, bước C2 và C3).
 
 ### Đọc tiếp theo vai trò
 

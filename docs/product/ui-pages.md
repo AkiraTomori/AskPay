@@ -45,7 +45,7 @@ W1 shell + ví → W2 trang Hỏi + `useAsk` → W3 trang Kết quả → W4 Das
 ```
 ┌──────────────────────────────────────────────┐
 │  Hỏi về Bộ luật Lao động 2019                 │
-│  Trả theo câu. Trích sai thì hoàn tiền.        │
+│  Trả theo câu. Không qua kiểm tra thì hoàn tiền.│
 │ ┌──────────────────────────────────────────┐ │
 │ │ Ví dụ: Thử việc tối đa bao lâu?           │ │  QuestionForm (textarea, đếm 0/500)
 │ └──────────────────────────────────────────┘ │
@@ -88,7 +88,9 @@ Gửi xong thì chuyển sang `/questions/<qid>`.
 │ ┌──────────────────────────────────────────────────┐ │
 │ │ Điều 25 · Khoản 2 — Thời gian thử việc            │ │  CitationCard
 │ │ “không quá 60 ngày đối với công việc …”           │ │  (đoạn trích, chữ serif)
-│ │ ✓ Đã xác minh on-chain       [Xem nguyên văn ▾]    │ │
+│ │ ✓ Khoản có trong luật đã đăng ký on-chain         │ │
+│ │   Đoạn trích và mức liên quan: checker đã ký       │ │
+│ │                              [Xem nguyên văn ▾]    │ │
 │ └──────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────┘
 ```
@@ -100,7 +102,7 @@ Gửi xong thì chuyển sang `/questions/<qid>`.
 | `StatusBadge` | `status`, `reason` | `GET /questions/:qid` (theo P2: từ event) |
 | `StepTimeline` | `stage` | poll 1 giây cho tới khi chốt |
 | `AnswerBody` | `answer`, `noBasis` | |
-| `CitationCard` | `citations[]` | `verifiedOnChain` chỉ `true` khi `status = PAID` |
+| `CitationCard` | `citations[]` | Dấu hai dòng (spec AP-07-AC02) chỉ hiện khi `verifiedOnChain = true`, tức `PAID` và hash khớp log `Paid` đọc qua RPC (api.md §3.2, Q-13). Web không tự tính cờ này. |
 | `TxLink` | `tx.deposit`, `tx.settle` | link `testnet.snowtrace.io/tx/…` |
 | `ClaimRefundButton` | `status = CLAIMABLE` | gọi `claimRefund(qid)` bằng wagmi |
 
@@ -126,6 +128,7 @@ Gửi xong thì chuyển sang `/questions/<qid>`.
 - Chỉ hiện khi `status = CLAIMABLE`.
 - Ai bấm cũng được; tiền luôn về đúng ví người hỏi. Nút ghi rõ "Tiền sẽ về ví 0xab…cd".
 - Đang chờ ký → đang chờ tx → xong thì badge đổi sang ĐÃ HOÀN TIỀN · TIMEOUT.
+- Mô phỏng `claimRefund` trước khi mở ví. Nếu câu đã được server chốt (revert `QuestionNotOpen`), hoặc tx của người hỏi revert vì lý do đó, thì không báo lỗi. Tải lại trang và hiện trạng thái cuối ([system-design §5.6 E](../architecture/system-design.md)).
 - Nếu API sập: trang vẫn đọc trạng thái trực tiếp từ contract (`questions(qid)`) qua viem để hiện nút.
 
 ## 5. `/dashboard`
