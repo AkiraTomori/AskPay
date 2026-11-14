@@ -1,0 +1,216 @@
+[
+  {
+    "index": 0,
+    "question": "Thời gian thử việc tối đa với công việc cần bằng cao đẳng là bao lâu?",
+    "inScope": true,
+    "ms": 1046,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Thời gian thử việc tối đa cho công việc cần bằng cao đẳng là 60 ngày.",
+    "cited": [
+      {
+        "where": "Điều 25 Khoản 2",
+        "quote": "Không quá 60 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật từ cao đẳng trở lên"
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "question": "Làm thêm giờ vào ngày lễ thì được trả lương bao nhiêu phần trăm?",
+    "inScope": true,
+    "ms": 1276,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 98 khoản 1, khi người lao động làm thêm giờ vào ngày nghỉ lễ, tết hoặc ngày nghỉ có hưởng lương, họ được trả lương ít nhất bằng 300% tiền lương tính theo đơn giá hoặc tiền lương thực trả (chưa kể tiền lương ngày lễ, tết).",
+    "cited": [
+      {
+        "where": "Điều 98 Khoản 1",
+        "quote": "Vào ngày nghỉ lễ, tết, ngày nghỉ có hưởng lương, ít nhất bằng 300%"
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "question": "Người lao động được nghỉ phép năm bao nhiêu ngày?",
+    "inScope": true,
+    "ms": 2363,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 113 Khoản 1, người lao động làm việc đủ 12 tháng cho một người sử dụng lao động được nghỉ hằng năm hưởng nguyên lương: 12 ngày làm việc đối với công việc bình thường; 14 ngày cho người chưa thành niên, người khuyết tật, công việc nặng nhọc, độc hại, nguy hiểm; và 16 ngày cho công việc đặc biệt nặng nhọc, độc hại, nguy hiểm.",
+    "cited": [
+      {
+        "where": "Điều 113 Khoản 1",
+        "quote": "Người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau: a) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường; b) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm; c) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm."
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "question": "Muốn nghỉ việc thì phải báo trước cho công ty bao nhiêu ngày?",
+    "inScope": true,
+    "ms": 1486,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 35 khoản 1 của Bộ luật Lao động 2019, người lao động muốn đơn phương chấm dứt hợp đồng phải báo trước cho người sử dụng lao động như sau: ít nhất 45 ngày nếu hợp đồng không xác định thời hạn; ít nhất 30 ngày nếu hợp đồng xác định thời hạn từ 12 tháng đến 36 tháng; ít nhất 03 ngày làm việc nếu hợp đồng xác định thời hạn dưới 12 tháng; hoặc theo quy định của Chính phủ đối với một số ngành, nghề, công việc đặc thù.",
+    "cited": [
+      {
+        "where": "Điều 35 Khoản 1",
+        "quote": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước cho người sử dụng lao động như sau: a) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn; b) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng; c) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng; d) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ."
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "question": "Lao động nữ nghỉ thai sản được bao lâu?",
+    "inScope": true,
+    "ms": 1396,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 139 khoản 1, lao động nữ được nghỉ thai sản tổng cộng 06 tháng, trong đó thời gian nghỉ trước khi sinh không quá 02 tháng; thời gian còn lại nghỉ sau sinh. Nếu sinh đôi trở lên, từ con thứ hai mỗi con được nghỉ thêm 01 tháng.",
+    "cited": [
+      {
+        "where": "Điều 139 Khoản 1",
+        "quote": "Lao động nữ được nghỉ thai sản trước và sau khi sinh con là 06 tháng; thời gian nghỉ trước khi sinh không quá 02 tháng. Trường hợp lao động nữ sinh đôi trở lên thì tính từ con thứ 02 trở đi, cứ mỗi con, người mẹ được nghỉ thêm 01 tháng."
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "question": "Công ty có được sa thải tôi khi tôi đang nghỉ ốm không?",
+    "inScope": true,
+    "ms": 1210,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Công ty không được sa thải bạn khi bạn đang nghỉ ốm. Theo Điều 122 khoản 4 của Bộ luật Lao động 2019, người lao động đang trong thời gian nghỉ ốm đau, điều dưỡng không được xử lý kỷ luật lao động, trong đó có việc sa thải.",
+    "cited": [
+      {
+        "where": "Điều 122 Khoản 4",
+        "quote": "Không được xử lý kỷ luật lao động đối với người lao động đang trong thời gian sau đây: a) Nghỉ ốm đau, điều dưỡng; nghỉ việc được sự đồng ý của người sử dụng lao động;"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "question": "Mỗi tuần được làm tối đa bao nhiêu giờ?",
+    "inScope": true,
+    "ms": 1408,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Luật Lao động 2019, thời giờ làm việc bình thường không được vượt quá 48 giờ trong một tuần.",
+    "cited": [
+      {
+        "where": "Điều 105 Khoản 2",
+        "quote": "trường hợp theo tuần thì thời giờ làm việc bình thường không quá 10 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần"
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "question": "Hợp đồng lao động có những loại nào?",
+    "inScope": true,
+    "ms": 2965,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 2,
+    "foreignIds": [],
+    "quotesChecked": 2,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Bộ luật Lao động 2019, hợp đồng lao động chỉ có hai loại chính: 1) Hợp đồng lao động không xác định thời hạn – trong đó hai bên không xác định thời điểm chấm dứt hợp đồng; 2) Hợp đồng lao động xác định thời hạn – trong đó thời gian làm việc được quy định rõ ràng, tối đa không quá 36 tháng. Khi hợp đồng xác định thời hạn hết hạn và không ký hợp đồng mới trong vòng 30 ngày, hợp đồng sẽ tự động chuyển thành hợp đồng không xác định thời hạn.",
+    "cited": [
+      {
+        "where": "Điều 20 Khoản 1",
+        "quote": "Hợp đồng lao động phải được giao kết theo một trong các loại sau đây: a) Hợp đồng lao động không xác định thời hạn là hợp đồng mà trong đó hai bên không xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng; b) Hợp đồng lao động xác định thời hạn là hợp đồng mà trong đó hai bên xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng trong thời gian không quá 36 tháng kể từ thời điểm có hiệu lực của hợp đồng."
+      },
+      {
+        "where": "Điều 20 Khoản 2",
+        "quote": "Nếu hết thời hạn 30 ngày kể từ ngày hợp đồng lao động hết hạn mà hai bên không ký kết hợp đồng lao động mới thì hợp đồng đã giao kết ... trở thành hợp đồng lao động không xác định thời hạn"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "question": "Cách nấu phở bò ngon tại nhà như thế nào?",
+    "inScope": false,
+    "ms": 994,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": true,
+    "citationCount": 0,
+    "foreignIds": [],
+    "quotesChecked": 0,
+    "quotesVerbatim": 0,
+    "noBasisWithCitations": false,
+    "answer": "",
+    "cited": []
+  },
+  {
+    "index": 9,
+    "question": "Vượt đèn đỏ khi đi xe máy bị phạt bao nhiêu tiền?",
+    "inScope": false,
+    "ms": 1134,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": true,
+    "citationCount": 0,
+    "foreignIds": [],
+    "quotesChecked": 0,
+    "quotesVerbatim": 0,
+    "noBasisWithCitations": false,
+    "answer": "",
+    "cited": []
+  }
+]

@@ -1,0 +1,232 @@
+[
+  {
+    "index": 0,
+    "question": "Thời gian thử việc tối đa với công việc cần bằng cao đẳng là bao lâu?",
+    "inScope": true,
+    "ms": 25110,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 25 Khoản 2 của Bộ luật Lao động 2019, thời gian thử việc tối đa đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật từ cao đẳng trở lên là không quá 60 ngày.",
+    "cited": [
+      {
+        "where": "Điều 25 Khoản 2",
+        "quote": "Không quá 60 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật từ cao đẳng trở lên;"
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "question": "Làm thêm giờ vào ngày lễ thì được trả lương bao nhiêu phần trăm?",
+    "inScope": true,
+    "ms": 17087,
+    "firstTryValid": false,
+    "retried": true,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 2,
+    "foreignIds": [],
+    "quotesChecked": 2,
+    "quotesVerbatim": 2,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 98 Khoản 1 của Bộ luật Lao động 2019, người lao động làm thêm giờ vào ngày nghỉ lễ, tết, ngày nghỉ có hưởng lương thì được trả lương ít nhất bằng 300% (tính theo đơn giá tiền lương hoặc tiền lương thực trả theo công việc đang làm), chưa kể tiền lương ngày lễ, tết, ngày nghỉ có hưởng lương đối với người lao động hưởng lương ngày. Nếu làm thêm giờ vào ban đêm thì ngoài mức lương theo quy định tại khoản 1, người lao động còn được trả thêm 20% tiền lương tính theo đơn giá tiền lương hoặc tiền lương theo công việc làm vào ban ngày của ngày nghỉ lễ, tết (Điều 98 Khoản 3).",
+    "cited": [
+      {
+        "where": "Điều 98 Khoản 1",
+        "quote": "c) Vào ngày nghỉ lễ, tết, ngày nghỉ có hưởng lương, ít nhất bằng 300% chưa kể tiền lương ngày lễ, tết, ngày nghỉ có hưởng lương đối với người lao động hưởng lương ngày."
+      },
+      {
+        "where": "Điều 98 Khoản 3",
+        "quote": "Người lao động làm thêm giờ vào ban đêm thì ngoài việc trả lương theo quy định tại khoản 1 và khoản 2 Điều này, người lao động còn được trả thêm 20% tiền lương tính theo đơn giá tiền lương hoặc tiền lương theo công việc làm vào ban ngày của ngày làm việc bình thường hoặc của ngày nghỉ hằng tuần hoặc của ngày nghỉ lễ, tết."
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "question": "Người lao động được nghỉ phép năm bao nhiêu ngày?",
+    "inScope": true,
+    "ms": 36897,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 2,
+    "foreignIds": [],
+    "quotesChecked": 2,
+    "quotesVerbatim": 2,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 113 Khoản 1 của Bộ luật Lao động 2019, người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau: a) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường; b) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm; c) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm. Ngoài ra, khi nghỉ hằng năm mà chưa đến kỳ trả lương, người lao động được tạm ứng tiền lương theo quy định tại khoản 3 Điều 101 của Bộ luật này.",
+    "cited": [
+      {
+        "where": "Điều 113 Khoản 1",
+        "quote": "Người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau: a) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường; b) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm; c) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm."
+      },
+      {
+        "where": "Điều 113 Khoản 5",
+        "quote": "Khi nghỉ hằng năm mà chưa đến kỳ trả lương, người lao động được tạm ứng tiền lương theo quy định tại khoản 3 Điều 101 của Bộ luật này."
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "question": "Muốn nghỉ việc thì phải báo trước cho công ty bao nhiêu ngày?",
+    "inScope": true,
+    "ms": 42090,
+    "firstTryValid": false,
+    "retried": true,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 35 Khoản 1 của Bộ luật Lao động 2019, người lao động có quyền đơn phương chấm dứt hợp đồng lao động (nghỉ việc) nhưng phải báo trước cho người sử dụng lao động như sau: a) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn; b) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng; c) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng; d) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.",
+    "cited": [
+      {
+        "where": "Điều 35 Khoản 1",
+        "quote": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước cho người sử dụng lao động như sau: a) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn; b) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng; c) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng; d) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ."
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "question": "Lao động nữ nghỉ thai sản được bao lâu?",
+    "inScope": true,
+    "ms": 45696,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 139 Khoản 1 Bộ luật Lao động 2019, lao động nữ được nghỉ thai sản trước và sau khi sinh con là 06 tháng; thời gian nghỉ trước khi sinh không quá 02 tháng. Trường hợp lao động nữ sinh đôi trở lên thì tính từ con thứ 02 trở đi, cứ mỗi con, người mẹ được nghỉ thêm 01 tháng.",
+    "cited": [
+      {
+        "where": "Điều 139 Khoản 1",
+        "quote": "Lao động nữ được nghỉ thai sản trước và sau khi sinh con là 06 tháng; thời gian nghỉ trước khi sinh không quá 02 tháng. Trường hợp lao động nữ sinh đôi trở lên thì tính từ con thứ 02 trở đi, cứ mỗi con, người mẹ được nghỉ thêm 01 tháng."
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "question": "Công ty có được sa thải tôi khi tôi đang nghỉ ốm không?",
+    "inScope": true,
+    "ms": 20816,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 1,
+    "foreignIds": [],
+    "quotesChecked": 1,
+    "quotesVerbatim": 1,
+    "noBasisWithCitations": false,
+    "answer": "Không. Theo Điều 122 Khoản 4 Bộ luật Lao động 2019, người sử dụng lao động không được xử lý kỷ luật lao động (bao gồm cả hình thức sa thải) đối với người lao động đang nghỉ ốm đau, điều dưỡng hoặc nghỉ việc được sự đồng ý của người sử dụng lao động. Vì vậy, trong thời gian bạn đang nghỉ ốm, công ty không được sa thải bạn dưới hình thức xử lý kỷ luật. Lưu ý: nếu hợp đồng lao động của bạn hết hạn trong thời gian nghỉ ốm thì việc chấm dứt hợp đồng theo thỏa thuận hoặc hết hạn hợp đồng là khác với xử lý kỷ luật sa thải; nếu bạn là lao động nữ mang thai, nghỉ thai sản hoặc nuôi con dưới 12 tháng tuổi thì còn được bảo vệ thêm theo Điều 137.",
+    "cited": [
+      {
+        "where": "Điều 122 Khoản 4",
+        "quote": "Không được xử lý kỷ luật lao động đối với người lao động đang trong thời gian sau đây: a) Nghỉ ốm đau, điều dưỡng; nghỉ việc được sự đồng ý của người sử dụng lao động;"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "question": "Mỗi tuần được làm tối đa bao nhiêu giờ?",
+    "inScope": true,
+    "ms": 35961,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 3,
+    "foreignIds": [],
+    "quotesChecked": 3,
+    "quotesVerbatim": 3,
+    "noBasisWithCitations": false,
+    "answer": "Theo quy định về thời giờ làm việc bình thường, người sử dụng lao động có quyền quy định thời giờ làm việc theo ngày hoặc tuần nhưng phải thông báo cho người lao động biết; trường hợp theo tuần thì thời giờ làm việc bình thường không quá 10 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần. Nhà nước khuyến khích người sử dụng lao động thực hiện tuần làm việc 40 giờ. Riêng với người chưa thành niên: người chưa đủ 15 tuổi không được quá 20 giờ trong 01 tuần; người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được quá 40 giờ trong 01 tuần.",
+    "cited": [
+      {
+        "where": "Điều 105 Khoản 2",
+        "quote": "trường hợp theo tuần thì thời giờ làm việc bình thường không quá 10 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần. Nhà nước khuyến khích người sử dụng lao động thực hiện tuần làm việc 40 giờ đối với người lao động."
+      },
+      {
+        "where": "Điều 146 Khoản 2",
+        "quote": "Thời giờ làm việc của người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được quá 08 giờ trong 01 ngày và 40 giờ trong 01 tuần."
+      },
+      {
+        "where": "Điều 146 Khoản 1",
+        "quote": "Thời giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm."
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "question": "Hợp đồng lao động có những loại nào?",
+    "inScope": true,
+    "ms": 25167,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": false,
+    "citationCount": 2,
+    "foreignIds": [],
+    "quotesChecked": 2,
+    "quotesVerbatim": 2,
+    "noBasisWithCitations": false,
+    "answer": "Theo Điều 20 Khoản 1 Bộ luật Lao động 2019, hợp đồng lao động phải được giao kết theo một trong các loại sau đây: 1) Hợp đồng lao động không xác định thời hạn là hợp đồng mà trong đó hai bên không xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng; 2) Hợp đồng lao động xác định thời hạn là hợp đồng mà trong đó hai bên xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng trong thời gian không quá 36 tháng kể từ thời điểm có hiệu lực của hợp đồng. Ngoài ra, theo Điều 20 Khoản 2, khi hợp đồng lao động xác định thời hạn hết hạn mà người lao động vẫn tiếp tục làm việc thì trong thời hạn 30 ngày hai bên phải ký kết hợp đồng lao động mới; nếu hết thời hạn 30 ngày mà không ký kết hợp đồng mới thì hợp đồng đã giao kết trở thành hợp đồng lao động không xác định thời hạn; trường hợp ký hợp đồng xác định thời hạn mới thì chỉ được ký thêm 01 lần, sau đó phải ký hợp đồng không xác định thời hạn (trừ một số trường hợp luật định).",
+    "cited": [
+      {
+        "where": "Điều 20 Khoản 1",
+        "quote": "Hợp đồng lao động phải được giao kết theo một trong các loại sau đây: a) Hợp đồng lao động không xác định thời hạn là hợp đồng mà trong đó hai bên không xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng; b) Hợp đồng lao động xác định thời hạn là hợp đồng mà trong đó hai bên xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng trong thời gian không quá 36 tháng kể từ thời điểm có hiệu lực của hợp đồng."
+      },
+      {
+        "where": "Điều 20 Khoản 2",
+        "quote": "Nếu hết thời hạn 30 ngày kể từ ngày hợp đồng lao động hết hạn mà hai bên không ký kết hợp đồng lao động mới thì hợp đồng đã giao kết theo quy định tại điểm b khoản 1 Điều này trở thành hợp đồng lao động không xác định thời hạn"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "question": "Cách nấu phở bò ngon tại nhà như thế nào?",
+    "inScope": false,
+    "ms": 4824,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": true,
+    "citationCount": 0,
+    "foreignIds": [],
+    "quotesChecked": 0,
+    "quotesVerbatim": 0,
+    "noBasisWithCitations": false,
+    "answer": "Câu hỏi về cách nấu phở bò không thuộc phạm vi Bộ luật Lao động 2019 và không có ứng viên nào cung cấp thông tin liên quan, nên không có cơ sở để trả lời.",
+    "cited": []
+  },
+  {
+    "index": 9,
+    "question": "Vượt đèn đỏ khi đi xe máy bị phạt bao nhiêu tiền?",
+    "inScope": false,
+    "ms": 55154,
+    "firstTryValid": true,
+    "retried": false,
+    "jsonValid": true,
+    "noBasis": true,
+    "citationCount": 0,
+    "foreignIds": [],
+    "quotesChecked": 0,
+    "quotesVerbatim": 0,
+    "noBasisWithCitations": false,
+    "answer": "Câu hỏi này thuộc về quy định xử phạt vi phạm giao thông đường bộ, không nằm trong phạm vi điều chỉnh của Bộ luật Lao động 2019. Các ứng viên được cung cấp đều là quy định về lao động (hợp đồng đào tạo nghề, xử lý kỷ luật, đình công, lao động chưa thành niên, người giúp việc gia đình...) và không có nội dung nào quy định mức phạt tiền đối với hành vi vượt đèn đỏ khi đi xe máy. Vì vậy, không có cơ sở trong các ứng viên để trả lời câu hỏi này.",
+    "cited": []
+  }
+]

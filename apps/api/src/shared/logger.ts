@@ -7,6 +7,8 @@ export function createLogger(level = process.env.LOG_LEVEL ?? 'info') {
     level,
     redact: {
       paths: [
+        '*.apiKey',
+        'apiKey',
         '*.privateKey',
         '*.providerPrivateKey',
         'providerPrivateKey',
