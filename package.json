@@ -20,6 +20,8 @@
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run verify:contracts",
     "corpus": "tsc --build && node packages/corpus/dist/cli.js",
     "abi": "node scripts/gen-abi.mjs",
+    "dev:api": "tsc --build && node --env-file=apps/api/.env apps/api/dist/server.js",
+    "ask:client": "tsc --build && node --env-file=.env.e2e scripts/ask-client.mjs",
     "e2e:contract": "tsc --build && node --env-file=.env.e2e scripts/e2e-contract-fuji.mjs"
   },
   "devDependencies": {

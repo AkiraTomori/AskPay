@@ -81,6 +81,10 @@ npm run abi                         # → packages/shared/src/abi, deployments.t
 npm run e2e:contract                # chạy khô: kiểm điều kiện và mô phỏng, KHÔNG gửi gì
 npm run e2e:contract -- --send      # gửi thật: Refunded (NoCitation), Refunded (InvalidCitation), Paid
 
+# 2c. API (A4) + client ký thử. Cần apps/api/.env (xem apps/api/.env.example) và .env.e2e
+npm run dev:api                     # :4000, đọc apps/api/.env
+npm run ask:client -- "Thử việc tối đa bao lâu?"   # 402 → ký → trả tiền → 202 ANSWERING (CẦN OWNER DUYỆT nếu chạy trên Fuji thật: tiền nằm trong escrow tới khi A5 chốt)
+
 # 3. Chạy
 npm run dev                         # api :4000, web :3000
 ```

@@ -1,5 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "composite": false, "noEmit": true, "declaration": false },
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM"],
+    "composite": false,
+    "noEmit": true,
+    "declaration": false
+  },
   "include": ["src", "test"]
 }
