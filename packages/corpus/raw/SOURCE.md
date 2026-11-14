@@ -46,3 +46,5 @@ Ngày 14/11/2026, vbpl.vn **chưa** có văn bản hợp nhất này cho Bộ lu
 - **(a) Giữ bản gốc, ghi rõ giới hạn.** Ghi "theo văn bản gốc năm 2019" trong UI và disclaimer; đánh dấu các Điều đã bị sửa nếu xác định được.
 - **(b) Dùng văn bản hợp nhất 18/VBHN-VPQH** khi tìm được nguồn chính thức. Khi đó `lawId` phải gắn với phiên bản hợp nhất.
 - **(c) Giữ bản gốc cho demo, chuyển sang bản hợp nhất trong roadmap.**
+
+**Owner đã chọn (14/11/2026): dùng bản gốc cho demo** (gần với hướng (a)/(c)). UI và disclaimer phải ghi rõ "theo văn bản gốc Bộ luật Lao động 2019"; bản hợp nhất để trong roadmap.
