@@ -21,7 +21,7 @@
 
 | HTTP | `code` | Khi |
 |---|---|---|
-| 400 | `VALIDATION_FAILED` | Body sai schema; câu hỏi rỗng hoặc dài hơn 500 ký tự |
+| 400 | `VALIDATION_FAILED` | Body sai schema; câu hỏi rỗng hoặc dài hơn 500 ký tự (đếm sau khi chuẩn hoá NFC và cắt khoảng trắng đầu cuối) |
 | 402 | `PAYMENT_INVALID` | Chữ ký sai, hết hạn, sai số tiền, sai `to`, sai `nonce` |
 | 404 | `QUESTION_NOT_FOUND` | Không có `qid`, hoặc báo giá đã hết hạn |
 | 409 | `QUESTION_ALREADY_SETTLED` | Gửi lại thanh toán cho `qid` đã giữ tiền hoặc đã chốt; `details` chứa kết quả hiện tại |
@@ -191,11 +191,11 @@ Câu bị hoàn tiền vẫn trả `200`, với `status: "REFUNDED"` và `reason
 | Chữ ký hỏng | `402 PAYMENT_INVALID`, không có tx nào được gửi |
 | Gửi lại cùng chữ ký (replay) | `409 QUESTION_ALREADY_SETTLED` kèm `details` = kết quả hiện tại; không trừ tiền lần 2 |
 | Client mất kết nối giữa chừng | Server vẫn chạy tiếp tới khi chốt; client mở `/questions/<qid>` để xem |
-| Quá 60 giây mà chưa chốt | `202` kèm `{ data: { qid, stage } }`; client chuyển sang poll |
+| Quá 60 giây mà chưa chốt | `202` kèm `{ data: { qid, stage } }` (`askAcceptedSchema` trong `packages/shared`); client chuyển sang poll |
 | Hai request cùng chữ ký tới đồng thời | Chỉ một request gửi deposit. Request còn lại nhận `409 QUESTION_ALREADY_SETTLED`, `details` là trạng thái hiện tại. |
 | `validBefore` còn dưới 60 giây | `402 PAYMENT_INVALID`, không gửi tx |
 | Ví provider không đủ AVAX, hoặc hàng đợi tx đang lỗi | `503 CHAIN_UNAVAILABLE` **trước khi** giữ tiền |
-| Đã gửi deposit nhưng chưa biết kết quả | `202 { qid, stage: "DEPOSITING" }`. **Không** trả 402, để client không xin báo giá mới và trả tiền lần hai. |
+| Đã gửi deposit nhưng chưa biết kết quả | `202 { data: { qid, stage: "DEPOSITING" } }`. **Không** trả 402, để client không xin báo giá mới và trả tiền lần hai. |
 | LLM lỗi hoặc checker lỗi sau khi đã giữ tiền | `200`, `status: "REFUNDED"`, `reason: "ANSWER_FAILED"` (qua `refundByProvider`). Không trả mã 5xx. |
 | Server không chốt được (sai khoá, tx kẹt) | `202`, rồi poll. Tới `deadline` thì `status: "CLAIMABLE"` và người hỏi tự nhận lại tiền. |
 
