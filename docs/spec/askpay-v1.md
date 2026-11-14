@@ -152,7 +152,7 @@ Một câu trả lời **đạt** khi thoả cả ba điều kiện:
 
 | Mã | Câu hỏi | Lựa chọn | Đề xuất | Chốt |
 |---|---|---|---|---|
-| Q-01 | Dùng LLM của nhà cung cấp nào? | Claude / Gemini / OpenAI | Chọn bên bạn đang có credit hoặc free tier. Chất lượng tiếng Việt và khả năng trả JSON ổn định quan trọng hơn giá | ⬜ |
+| Q-01 | Dùng LLM của nhà cung cấp nào? | Claude / Gemini / OpenAI | Chọn bên bạn đang có credit hoặc free tier. Chất lượng tiếng Việt và khả năng trả JSON ổn định quan trọng hơn giá | ✅ Owner chốt 14/11/2026: **Groq, model `qwen/qwen3.8-27b`**. Lý do (POC-3): 0,7 giây mỗi câu, 10/10 JSON hợp lệ ba lần chạy, 10/10 trích dẫn đúng nguyên văn. Model miễn phí của OpenRouter bị loại vì trung vị khoảng 36 giây, vượt ngân sách 20 giây. Hạn mức miễn phí của Groq là 8.000 token mỗi phút (khoảng 3 đến 4 câu mỗi phút) và 1.000 yêu cầu mỗi ngày; quá hạn mức thì câu bị hoàn tiền `ANSWER_FAILED`. Câu hỏi của người dùng được gửi tới Groq. |
 | Q-02 | Giá mỗi câu hỏi? | 0,01 / 0,05 / 0,10 USDC | **0,05 USDC** (khoảng 1.300đ): đủ nhỏ để gọi là micropayment, đủ lớn để thấy rõ trên Snowtrace | ⬜ |
 | Q-03 | Dùng token nào? | USDC testnet của Circle trên Fuji / token demo tự deploy | **USDC** nếu ngày 10/11 kiểm tra thấy hỗ trợ `receiveWithAuthorization`; không thì dùng token demo có EIP-3009 | ✅ Theo POC-1: USDC nếu POC-1 đạt, không thì `MockUSDC`; test luôn dùng `MockUSDC`. Owner chốt luật 14/11/2026. POC-1 đạt 14/11/2026 nên token là **USDC Fuji** |
 | Q-04 | Bị hoàn tiền thì người hỏi có thấy câu trả lời không? | Hiện kèm cảnh báo đỏ / Ẩn, chỉ hiện các Khoản tìm được | **Hiện kèm cảnh báo** "Không đạt kiểm tra, đã hoàn tiền". Khớp tinh thần đề "không trích dẫn thì miễn phí" | ⬜ |

@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | **POC-1** | USDC testnet của Circle trên Fuji có `receiveWithAuthorization` không? Domain EIP-712 (`name`, `version`) là gì? | Trên anvil fork Fuji: một contract tạm gọi `receiveWithAuthorization` với chữ ký viem thì nhận được tiền | T-12 chuyển sang `MockUSDC`; sửa câu nói về Avalanche trong demo | 10/11 | ✅ Đạt (14/11) |
 | **POC-2** | Leaf và `citationsHash` mã hoá trong TypeScript có khớp Solidity không? | Fixture JSON sinh từ TS → `forge test` khớp 100% (gồm Khoản 0 và chữ có dấu) | Proof hỏng toàn bộ; phải sửa `leaf.ts` | 11/11 | ⬜ |
-| **POC-3** | LLM đã chọn (Q-01) có trả JSON tiếng Việt đúng schema và chỉ trích ID ứng viên không? | ≥ 9/10 câu JSON hợp lệ; 0 câu trích ID ngoài danh sách | Đổi model hoặc nhà cung cấp; thêm bước sửa JSON | 13/11 | ⬜ |
+| **POC-3** | LLM đã chọn (Q-01) có trả JSON tiếng Việt đúng schema và chỉ trích ID ứng viên không? | ≥ 9/10 câu JSON hợp lệ; 0 câu trích ID ngoài danh sách | Đổi model hoặc nhà cung cấp; thêm bước sửa JSON | 13/11 | ✅ Đạt với Groq `qwen/qwen3.8-27b`; model miễn phí OpenRouter **chưa đạt độ trễ** (14/11) |
 | **POC-4** | BM25 âm tiết có đưa đúng Khoản vào top-8 không? | ≥ 8/10 câu mẫu có Khoản đúng trong top-8 | Thêm embedding (T-05) | 13/11 | ⬜ |
 
 ## Ghi kết quả
@@ -47,4 +47,37 @@ Khi xong mỗi POC, thêm một mục theo mẫu:
 
 - Chưa kiểm: luồng `claimRefund` sau hạn 600 giây và `refundByProvider` trên Fuji thật (đã có test forge, chưa có tx thật); `settle` với nhiều trích dẫn.
 - Quyết định kéo theo: mốc E2E 12/11 của plan đạt (1 Paid + 1 Refunded trên Snowtrace).
+
+### POC-3 — LLM trả JSON tiếng Việt đúng schema (14/11/2026)
+- Làm gì: [`poc/poc-3/run.mjs`](../../poc/poc-3/run.mjs) dựng prompt đúng system-design §5.3 bằng retrieval BM25 thật trên corpus thật (top-8, ID `C1…C8`), gọi model miễn phí của OpenRouter (nhiệt độ 0, JSON mode), kiểm bằng zod. 10 câu mẫu: 8 câu Bộ luật trả lời được, 2 câu ngoài phạm vi (nấu phở, phạt vượt đèn đỏ). Mỗi câu lỗi parse được thử lại một lần, như thiết kế.
+- Kết quả: **Đạt về định dạng và nội dung, chưa đạt về độ trễ** với `inclusionai/ling-3.2-flash:free`. Ba lần chạy đầu (30 câu) đo định dạng và nội dung:
+
+| Lần | JSON hợp lệ lần đầu | Sau 1 lần thử lại | ID ngoài danh sách | Ngoài phạm vi trả `noBasis` | Đoạn trích đúng nguyên văn |
+|---|---|---|---|---|---|
+| 1 | 10/10 | 10/10 | 0 | 2/2 | 11/11 |
+| 2 | 9/10 | 9/10 (câu 4 rỗng hai lần liên tiếp) | 0 | 2/2 | một đoạn "Sa thải." (8 ký tự) |
+| 3 | 9/10 | 10/10 | 0 | 2/2 | 13/13 |
+
+  - **Độ trễ: số liệu "khoảng 1,2 giây" trong bản ghi đầu là SAI.** Script POC đo thời gian chỉ tới lúc nhận header; OpenRouter trả header sớm và gửi nội dung khi model xong. Đã sửa cách đo (sau khi đọc xong nội dung) và đo lại ngày 14/11: trung vị **khoảng 36 giây**, nhanh nhất 4,8 giây, chậm nhất 55 giây, **8/10 câu vượt ngân sách 20 giây** của thiết kế. Client của module `answer` (A2) đo trước đó cho kết quả tương tự (5 đến 56 giây). Độ trễ của model miễn phí dao động theo tải; lúc chậm thì sau hai lần gọi (mỗi lần tối đa 20 giây) khoảng 3/10 câu thất bại và bị hoàn tiền `ANSWER_FAILED`.
+  - Câu 4 ("báo trước bao nhiêu ngày nghỉ việc") chạy thêm 6 lần riêng: 6/6 đạt. Nên lỗi rỗng là sự cố thoáng qua của dịch vụ miễn phí, không gắn với câu hỏi.
+  - Đọc nội dung bằng mắt: tiếng Việt tự nhiên, số liệu khớp luật (thử việc 60 ngày, làm thêm ngày lễ 300%, nghỉ phép 12 ngày, thai sản 6 tháng, 48 giờ mỗi tuần). Câu 6 ("sa thải khi đang nghỉ ốm") trả lời đúng "Không" và dẫn Điều 122 Khoản 4.
+  - `google/gemma-4-31b-it:free` **không kết luận được**: 8/10 câu bị giới hạn tốc độ (`RATE_LIMITED`) nên không đo được chất lượng.
+- **Thử lại với Groq (14/11, cùng 10 câu, cùng prompt, đã đo đúng thời gian tới khi đọc xong nội dung):**
+
+| Model (Groq) | JSON hợp lệ lần đầu | ID ngoài danh sách | Ngoài phạm vi `noBasis` | Đoạn trích đúng nguyên văn | Trung vị | Quá 20 giây |
+|---|---|---|---|---|---|---|
+| `qwen/qwen3.8-27b` (3 lần chạy) | 10/10, 10/10, 10/10 | 0 | 2/2 mỗi lần | 10/10 mỗi lần | 0,65 đến 0,78 giây | 0 |
+| `openai/gpt-oss-120b` | 10/10 | 0 | 2/2 | 8/9 | 1,4 giây | 0 |
+| `openai/gpt-oss-20b` | 10/10 | 0 | 2/2 | 7/8 | 1,0 giây | 0 |
+
+  - Chạy chính module `answer` (A2) với Groq Qwen bằng `npm run answer:live`: 10/10 câu đáp ứng, 10/10 trích dẫn nguyên văn, không quote ngắn, không ID lạ, 2/2 ngoài phạm vi `noBasis`, mỗi câu 0,5 đến 1 giây.
+  - Đọc nội dung bằng mắt: tiếng Việt tự nhiên, số liệu đúng luật (thử việc 60 ngày, làm thêm ngày lễ 300%, nghỉ phép 12 ngày, báo trước nghỉ việc 45/30/3 ngày, thai sản 6 tháng, 48 giờ mỗi tuần).
+  - **Hạn mức Groq (đọc từ header phản hồi, tài khoản hiện tại):** 8.000 token mỗi phút và 1.000 yêu cầu mỗi ngày. Mỗi câu hỏi tốn khoảng 2.000 token, nên chỉ khoảng 3 đến 4 câu mỗi phút. Chạy dồn 10 câu liên tiếp gặp `429` từ câu thứ 3, vì vậy bộ eval và script phải giãn cách. Nhiều người hỏi cùng lúc trong một phút sẽ có câu bị hoàn tiền `ANSWER_FAILED`.
+- Bằng chứng: `node --env-file=.env.poc poc/poc-3/run.mjs --model inclusionai/ling-3.2-flash:free` (OpenRouter) và `node --env-file=.env.poc poc/poc-3/run.mjs --provider groq --model qwen/qwen3.8-27b`. Kết quả từng câu (kèm câu trả lời) ở [`poc/poc-3/results/`](../../poc/poc-3/results/).
+- Chưa kiểm và rủi ro:
+  - Mẫu nhỏ (10 câu, 3 lần). Chưa đo độ đúng trên bộ eval 20 câu trở lên (E1).
+  - Lần 2, model trích một đoạn dưới 15 ký tự ("Sa thải.") dù prompt yêu cầu tối thiểu 15. Checker C2 sẽ từ chối câu như vậy (`CHECKER_REJECTED`, hoàn tiền). Module answer (A2) nên xử lý: nhắc lại trong prompt, hoặc thử lại khi quote quá ngắn.
+  - Với độ trễ trên, model miễn phí này **không đủ tin cậy cho demo** nếu giữ ngân sách 20 giây mỗi lần gọi. Cần chọn model nhanh hơn (có thể trả phí, hoặc Groq) hoặc nới ngân sách; đó là quyết định của owner (Q-01).
+  - Model miễn phí có hạn mức theo phút và theo ngày, có thể bị rút hoặc đổi, và nhà cung cấp có thể lưu nội dung gửi tới. Cần cân nhắc trước Demo Day (30/11). Groq chưa được thử, chỉ có sẵn tuỳ chọn `--provider groq` trong script làm dự phòng.
+- Quyết định kéo theo: **Q-01 do owner chốt ngày 14/11/2026 = Groq, model `qwen/qwen3.8-27b`** (đã ghi trong spec). OpenRouter model miễn phí chỉ còn là phương án dự phòng.
 

@@ -1,6 +1,7 @@
 // The only place that reads the environment (backend.md §1). Everything else gets a Config.
 import { z } from 'zod';
 import { FUJI_CHAIN_ID } from '@askpay/shared/x402';
+import type { LlmConfig } from './llm.js';
 
 // Fixed on purpose, not env (system-design §5.6 B): they are behaviour in acceptance criteria, so a
 // deploy environment must not be able to drift from the spec. Change them in code, with a test.
@@ -9,6 +10,8 @@ export const PIPELINE_BUDGET_SECONDS = 120;
 // A deposit mined after the authorisation expired would revert, so refuse chances that thin.
 export const MIN_VALID_BEFORE_SECONDS = 60;
 export const FAUCET_URL = 'https://faucet.circle.com';
+// One LLM call may take at most this long; a failed call gets one retry (system-design §5.3, §5.6 B).
+export const LLM_CALL_TIMEOUT_MS = 20_000;
 
 const privateKey = z
   .string()
@@ -33,6 +36,14 @@ const envSchema = z.object({
   DATABASE_PATH: z.string().min(1).default('./data/askpay.sqlite'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(20),
+  // The LLM is optional until the answer pipeline is wired in (A5); both must be set together.
+  LLM_PROVIDER: z.enum(['openrouter', 'groq']).default('openrouter'),
+  LLM_API_KEY: z.string().min(1).optional(),
+  LLM_MODEL: z.string().min(1).optional(),
+  LLM_JSON_MODE: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
 });
 
 export interface Config {
@@ -43,6 +54,7 @@ export interface Config {
   databasePath: string;
   port: number;
   rateLimitPerMinute: number;
+  llm: LlmConfig | undefined;
 }
 
 // Never log the returned object: it holds the provider key.
@@ -54,6 +66,11 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     throw new Error(`Invalid configuration: ${names.join(', ')}`);
   }
   const value = parsed.data;
+  if (Boolean(value.LLM_API_KEY) !== Boolean(value.LLM_MODEL)) {
+    throw new Error(
+      `Invalid configuration: ${value.LLM_API_KEY ? 'LLM_MODEL' : 'LLM_API_KEY'} (set LLM_API_KEY and LLM_MODEL together)`,
+    );
+  }
   return {
     rpcUrl: value.RPC_URL,
     providerPrivateKey: value.PROVIDER_PRIVATE_KEY as `0x${string}`,
@@ -62,5 +79,14 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     databasePath: value.DATABASE_PATH,
     port: value.PORT,
     rateLimitPerMinute: value.RATE_LIMIT_PER_MINUTE,
+    llm:
+      value.LLM_API_KEY && value.LLM_MODEL
+        ? {
+            provider: value.LLM_PROVIDER,
+            apiKey: value.LLM_API_KEY,
+            model: value.LLM_MODEL,
+            jsonMode: value.LLM_JSON_MODE,
+          }
+        : undefined,
   };
 }

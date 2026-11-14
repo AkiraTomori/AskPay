@@ -203,7 +203,10 @@ Prompt gồm: vai trò ("chỉ trả lời theo Bộ luật Lao động 2019"), 
 ```
 
 - `noBasis = true` thì `citations` phải rỗng và câu trả lời là câu mẫu "Không tìm thấy căn cứ trong Bộ luật Lao động 2019" (AP-04-AC03).
-- Parse lỗi thì thử lại **một** lần. Lỗi tiếp thì coi như `ANSWER_FAILED`.
+- Parse lỗi thì thử lại **một** lần. Lỗi tiếp thì coi như `ANSWER_FAILED`. "Lỗi" gồm cả lỗi gọi LLM (quá 20 giây, HTTP lỗi, trả rỗng). Mỗi lần gọi tối đa 20 giây.
+- `candidateId` không nằm trong danh sách ứng viên thì trích dẫn đó bị **loại** (AP-04-AC02); còn lại không trích dẫn nào thì `checker` hoàn tiền `NO_CITATION`.
+- `quote` ngắn hơn 15 ký tự (checker C2 sẽ từ chối) dùng luôn lần thử lại duy nhất, kèm nhắc trong prompt. Lần thử lại vẫn ngắn thì giữ nguyên và để checker quyết định (POC-3).
+- Cài đặt: `apps/api/src/modules/answer/`, client LLM dùng chung ở `shared/llm.ts`.
 - Ngay sau khi parse, mỗi `quote` được thay bằng `normalizeText(quote)`, dùng cùng hàm chuẩn hoá với corpus (§6). Từ đây về sau, checker, DB và UI chỉ dùng chuỗi đã chuẩn hoá này. Nhờ vậy chuỗi được băm thành `quoteHash` cũng là chuỗi người dùng nhìn thấy.
 
 ### 5.4 Checker

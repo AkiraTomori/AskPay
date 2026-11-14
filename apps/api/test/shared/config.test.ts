@@ -42,4 +42,53 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, PRICE_UNITS: '0' })).toThrow(/PRICE_UNITS/);
     expect(() => loadConfig({ ...base, PRICE_UNITS: '0.05' })).toThrow(/PRICE_UNITS/);
   });
+
+  describe('LLM settings', () => {
+    it('are optional until the pipeline needs them', () => {
+      expect(loadConfig(base).llm).toBeUndefined();
+    });
+
+    it('build an LLM config when the key and model are set, defaulting to OpenRouter with JSON mode', () => {
+      const config = loadConfig({
+        ...base,
+        LLM_API_KEY: 'k-secret',
+        LLM_MODEL: 'vendor/model:free',
+      });
+      expect(config.llm).toEqual({
+        provider: 'openrouter',
+        apiKey: 'k-secret',
+        model: 'vendor/model:free',
+        jsonMode: true,
+      });
+    });
+
+    it('accept groq and JSON mode off', () => {
+      const config = loadConfig({
+        ...base,
+        LLM_API_KEY: 'k',
+        LLM_MODEL: 'm',
+        LLM_PROVIDER: 'groq',
+        LLM_JSON_MODE: 'false',
+      });
+      expect(config.llm).toMatchObject({ provider: 'groq', jsonMode: false });
+    });
+
+    it('refuse a key without a model and a model without a key, naming only the variable', () => {
+      expect(() => loadConfig({ ...base, LLM_API_KEY: 'k-secret' })).toThrow(/LLM_MODEL/);
+      expect(() => loadConfig({ ...base, LLM_MODEL: 'm' })).toThrow(/LLM_API_KEY/);
+      let message = '';
+      try {
+        loadConfig({ ...base, LLM_API_KEY: 'k-secret' });
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).not.toContain('k-secret');
+    });
+
+    it('reject an unknown provider', () => {
+      expect(() =>
+        loadConfig({ ...base, LLM_API_KEY: 'k', LLM_MODEL: 'm', LLM_PROVIDER: 'nope' }),
+      ).toThrow(/LLM_PROVIDER/);
+    });
+  });
 });

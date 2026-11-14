@@ -41,9 +41,10 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | `RPC_URL_FALLBACK` | RPC thứ hai | Tuỳ chọn |
 | `PROVIDER_PRIVATE_KEY` | — | **Chỉ ở đây**, không bao giờ log |
 | `CHECKER_PRIVATE_KEY` | — | Phải khác provider |
-| `LLM_PROVIDER` | theo Q-01 | |
-| `LLM_API_KEY` | — | |
-| `LLM_MODEL` | theo Q-01 | |
+| `LLM_PROVIDER` | `groq` | `groq` hoặc `openrouter` (Q-01: Groq) |
+| `LLM_API_KEY` | — | **Chỉ ở đây**, không bao giờ log. Đặt cùng `LLM_MODEL` hoặc không đặt cả hai |
+| `LLM_MODEL` | `qwen/qwen3.8-27b` | Model đã chốt ở Q-01 |
+| `LLM_JSON_MODE` | `true` | Đặt `false` nếu model từ chối `response_format` |
 | `PRICE_UNITS` | `50000` | 0,05 USDC (Q-02) |
 | `QUOTE_TTL_SECONDS` | `300` | |
 | `DATABASE_PATH` | `./data/askpay.sqlite` | Khi deploy: trỏ vào thư mục mount của ổ đĩa lưu bền (Render disk hoặc volume của Railway), ví dụ `/var/data/askpay.sqlite`. Không để trên ổ đĩa tạm (system-design T-14). |
