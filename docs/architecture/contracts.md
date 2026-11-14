@@ -170,7 +170,13 @@ event Paid(bytes32 indexed qid, address indexed provider, uint256 amount, bytes3
 event Refunded(bytes32 indexed qid, address indexed payer, uint256 amount, RefundReason reason);
 event ProviderSet(address provider);
 event CheckerSet(address checker);
+event AnswerWindowSet(uint64 answerWindow);
 ```
+
+Constructor phát cả ba event cấu hình (`ProviderSet`, `CheckerSet`, `AnswerWindowSet`) để indexer có giá trị ban đầu.
+
+**Error khai báo trong contract** (bổ sung khi viết K1; ngoài các error đã nêu ở §4):
+`ZeroAddress`, `CheckerIsProvider`, `InvalidAnswerWindow` (`answerWindow == 0`), `LawRootAlreadySet(lawId)` và `InvalidLawRoot` (root bằng 0) cho `setLawRoot`, `TransferFailed` (token trả `false` khi `transfer`). Tất cả ánh xạ `INTERNAL_ERROR` ở bảng dưới.
 
 ## 6. Error → mã lý do → câu tiếng Việt
 
@@ -187,7 +193,7 @@ Bảng câu tiếng Việt nằm trong `packages/shared/src/errors.ts`. UI chỉ
 | `QuestionNotOpen` | `QUESTION_ALREADY_SETTLED` | Câu hỏi này đã được chốt. |
 | `DeadlineNotReached` | `REFUND_NOT_YET` | Chưa tới hạn tự nhận lại tiền. |
 | `InvalidCheckerSignature`, `BadCitations` | `INTERNAL_ERROR` | Lỗi hệ thống (không hiện chi tiết cho người dùng). Server bắt được khi mô phỏng, rồi chuyển sang `refundByProvider`. |
-| `NotProvider`, `InvalidAmount` | `INTERNAL_ERROR` | Lỗi cấu hình server. Không hiện chi tiết. |
+| `NotProvider`, `InvalidAmount`, `TransferFailed` | `INTERNAL_ERROR` | Lỗi cấu hình server. Không hiện chi tiết. |
 
 ## 7. Test (Foundry)
 
