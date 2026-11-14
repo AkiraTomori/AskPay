@@ -218,11 +218,11 @@ Chạy **theo thứ tự**; dừng ở bước đầu tiên không đạt.
 | C1 | Có ít nhất một trích dẫn | Tất định | `NO_CITATION` (không cần chữ ký: provider gọi `settle` với danh sách rỗng) |
 | C2 | Mỗi `quote` sau chuẩn hoá là **chuỗi con** của nguyên văn Khoản, dài ≥ 15 ký tự | Tất định | `CHECKER_REJECTED` |
 | C3 | Câu trả lời không nhắc "Điều N" nào ngoài các Điều đã trích (regex) | Tất định | `CHECKER_REJECTED` |
-| C4 | LLM-judge: mỗi Khoản được trích có trả lời câu hỏi không (`yes`/`no`, nhiệt độ 0) | LLM | `CHECKER_REJECTED` |
+| C4 | LLM-judge: mỗi Khoản được trích có trả lời câu hỏi không (`yes`/`no`, nhiệt độ 0). **Một lần gọi cho tất cả Khoản** (không gọi từng Khoản, để vừa ngân sách pipeline và hạn mức token); thử lại một lần. Judge chỉ thấy câu hỏi và nguyên văn Khoản, không thấy câu trả lời. Mọi Khoản phải `yes` thì mới đạt | LLM | `CHECKER_REJECTED` |
 | — | Ký `Verdict(qid, answerHash, citationsHash, pass)` bằng EIP-712 với **khoá checker** | — | — |
 
 **Checker ký đúng thứ nó đã kiểm (T-13).**
-- Checker nhận đầu vào là `{ qid, answer, citations: [{ lawId, dieu, khoan, textHash, quote }] }`. Đầu vào này **không có hash nào** ngoài `textHash`.
+- Checker nhận đầu vào là `{ qid, question, answer, citations: [{ lawId, dieu, khoan, textHash, quote }] }`. `question` để C4 chấm mức liên quan (không phải hash, nên không ảnh hưởng T-13). Đầu vào này **không có hash nào** ngoài `textHash`.
 - Checker tự tính các hash:
   - `answerHash = keccak256(utf8(answer))`, từ chính câu trả lời đã qua C3.
   - `quoteHash` từ chính chuỗi `quote` đã qua C2.

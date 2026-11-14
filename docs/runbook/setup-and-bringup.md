@@ -40,7 +40,7 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | `RPC_URL` | `https://api.avax-test.network/ext/bc/C/rpc` | |
 | `RPC_URL_FALLBACK` | RPC thứ hai | Tuỳ chọn |
 | `PROVIDER_PRIVATE_KEY` | — | **Chỉ ở đây**, không bao giờ log |
-| `CHECKER_PRIVATE_KEY` | — | Phải khác provider |
+| `CHECKER_PRIVATE_KEY` | — | Phải khác provider: `config.ts` từ chối nếu hai khoá cho cùng một địa chỉ (T-04). Địa chỉ của nó phải bằng `checker` trong `contracts/deployments/fuji.json`, nếu không `settle` revert `InvalidCheckerSignature` |
 | `LLM_PROVIDER` | `groq` | `groq` hoặc `openrouter` (Q-01: Groq) |
 | `LLM_API_KEY` | — | **Chỉ ở đây**, không bao giờ log. Đặt cùng `LLM_MODEL` hoặc không đặt cả hai |
 | `LLM_MODEL` | `qwen/qwen3.8-27b` | Model đã chốt ở Q-01 |

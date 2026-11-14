@@ -43,6 +43,36 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, PRICE_UNITS: '0.05' })).toThrow(/PRICE_UNITS/);
   });
 
+  describe('checker key', () => {
+    const checkerKey = 'cd'.repeat(32);
+
+    it('is optional until the pipeline needs it, and gets the 0x prefix', () => {
+      expect(loadConfig(base).checkerPrivateKey).toBeUndefined();
+      expect(loadConfig({ ...base, CHECKER_PRIVATE_KEY: checkerKey }).checkerPrivateKey).toBe(
+        `0x${checkerKey}`,
+      );
+    });
+
+    it('refuses the provider key reused as the checker key, in either spelling (T-04)', () => {
+      expect(() => loadConfig({ ...base, CHECKER_PRIVATE_KEY: key })).toThrow(
+        /CHECKER_PRIVATE_KEY/,
+      );
+      expect(() => loadConfig({ ...base, CHECKER_PRIVATE_KEY: `0x${key}` })).toThrow(
+        /CHECKER_PRIVATE_KEY/,
+      );
+    });
+
+    it('names the variable but never echoes the key', () => {
+      let message = '';
+      try {
+        loadConfig({ ...base, CHECKER_PRIVATE_KEY: key });
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      expect(message).not.toContain(key);
+    });
+  });
+
   describe('LLM settings', () => {
     it('are optional until the pipeline needs them', () => {
       expect(loadConfig(base).llm).toBeUndefined();

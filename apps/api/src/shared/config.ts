@@ -1,5 +1,6 @@
 // The only place that reads the environment (backend.md §1). Everything else gets a Config.
 import { z } from 'zod';
+import { privateKeyToAccount } from 'viem/accounts';
 import { FUJI_CHAIN_ID } from '@askpay/shared/x402';
 import type { LlmConfig } from './llm.js';
 
@@ -23,6 +24,8 @@ const envSchema = z.object({
   CHAIN_ID: z.coerce.number().pipe(z.literal(FUJI_CHAIN_ID)).default(FUJI_CHAIN_ID),
   RPC_URL: z.url(),
   PROVIDER_PRIVATE_KEY: privateKey,
+  // Signs verdicts only (T-04). Optional until the answer pipeline is wired in (A5).
+  CHECKER_PRIVATE_KEY: privateKey.optional(),
   PRICE_UNITS: z
     .string()
     .regex(/^[1-9][0-9]*$/)
@@ -49,6 +52,7 @@ const envSchema = z.object({
 export interface Config {
   rpcUrl: string;
   providerPrivateKey: `0x${string}`;
+  checkerPrivateKey: `0x${string}` | undefined;
   priceUnits: bigint;
   quoteTtlSeconds: number;
   databasePath: string;
@@ -57,7 +61,7 @@ export interface Config {
   llm: LlmConfig | undefined;
 }
 
-// Never log the returned object: it holds the provider key.
+// Never log the returned object: it holds the provider and checker keys.
 export function loadConfig(env: Record<string, string | undefined>): Config {
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
@@ -71,9 +75,21 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
       `Invalid configuration: ${value.LLM_API_KEY ? 'LLM_MODEL' : 'LLM_API_KEY'} (set LLM_API_KEY and LLM_MODEL together)`,
     );
   }
+  // T-04: one key for both roles would let the wallet that receives the money approve its own
+  // answers. Compare addresses, and name the variable only, never a value.
+  if (
+    value.CHECKER_PRIVATE_KEY &&
+    privateKeyToAccount(value.CHECKER_PRIVATE_KEY as `0x${string}`).address ===
+      privateKeyToAccount(value.PROVIDER_PRIVATE_KEY as `0x${string}`).address
+  ) {
+    throw new Error(
+      'Invalid configuration: CHECKER_PRIVATE_KEY (must differ from the provider key)',
+    );
+  }
   return {
     rpcUrl: value.RPC_URL,
     providerPrivateKey: value.PROVIDER_PRIVATE_KEY as `0x${string}`,
+    checkerPrivateKey: value.CHECKER_PRIVATE_KEY as `0x${string}` | undefined,
     priceUnits: value.PRICE_UNITS,
     quoteTtlSeconds: value.QUOTE_TTL_SECONDS,
     databasePath: value.DATABASE_PATH,

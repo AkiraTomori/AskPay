@@ -12,6 +12,8 @@ export function createLogger(level = process.env.LOG_LEVEL ?? 'info') {
         '*.privateKey',
         '*.providerPrivateKey',
         'providerPrivateKey',
+        '*.checkerPrivateKey',
+        'checkerPrivateKey',
         'privateKey',
         'req.headers["payment-signature"]',
       ],
