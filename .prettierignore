@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+package-lock.json
+packages/corpus/raw
+packages/corpus/data
+contracts/lib
+contracts/out
+contracts/cache
+contracts/broadcast
+plugins
+.agents
+.claude
+.claude-plugin
+.codex
+docs
+*.md
