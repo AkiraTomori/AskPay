@@ -1,8 +1,10 @@
-// POST /ask in two steps (api.md §3): quote, then payment. A4 stops once the deposit is on-chain;
-// answering, checking and settling are A5, so a deposited question waits at ANSWERING.
+// POST /ask in two steps (api.md §3): quote, then payment. Paying deposits into escrow, then runs
+// the pipeline (answer, check, settle) and holds the request up to REQUEST_WAIT_MS for the result.
+// The pipeline does not depend on the request (system-design §5.6 rule 3): a client that leaves, or
+// a 60-second wait that runs out, never cancels it.
 import { randomBytes } from 'node:crypto';
 import { encodeAbiParameters, keccak256, toBytes, toHex, type Hex } from 'viem';
-import type { QuestionResult } from '@askpay/shared/api';
+import type { AskAccepted, QuestionResult } from '@askpay/shared/api';
 import {
   FUJI_NETWORK,
   decodeHeader,
@@ -12,42 +14,45 @@ import {
   type PaymentResponse,
 } from '@askpay/shared/x402';
 import { AppError } from '../../shared/errors.js';
-import type { Config } from '../../shared/config.js';
-import type { Logger } from '../../shared/logger.js';
-import type { Store } from '../../shared/store.js';
+import { REQUEST_WAIT_MS, type Config } from '../../shared/config.js';
+import type { CorpusService } from '../corpus/corpus.service.js';
 import {
   buildPaymentRequired,
   ensurePayerCanPay,
   providerCanPayGas,
   readQuestionStatus,
   sendDeposit,
+  txQueueHealthy,
   verifyPayment,
   type OnChainStatus,
-  type PaymentChain,
   type Quote,
+  type SendHooks,
 } from '../payment/payment.service.js';
+import type { AskContext } from './ask.context.js';
+import type { Pipeline } from './ask.pipeline.js';
 import {
   findQuestion,
   insertQuote,
+  patchQuestion,
   transitionStage,
   type QuestionRow,
   type Stage,
 } from './ask.repository.js';
+import { toQuestionResult } from './ask.result.js';
 
 export interface AskDeps {
-  store: Store;
-  chain: PaymentChain;
+  ctx: AskContext;
+  pipeline: Pipeline;
+  corpus: CorpusService;
   config: Pick<Config, 'priceUnits' | 'quoteTtlSeconds'>;
-  logger: Logger;
-  now?: () => number; // unix ms; injectable so tests control expiry
+  requestWaitMs?: number; // injectable so tests need not wait a minute
   randomSalt?: () => Hex; // 16 bytes; injectable so tests get fixed qids
 }
 
-export interface PaymentAccepted {
-  status: 202;
-  body: { qid: Hex; stage: Stage };
-  paymentResponse: PaymentResponse;
-}
+// 200 with the final result, or 202 with where the question stands (the client then polls).
+export type PaymentAccepted =
+  | { status: 200; body: QuestionResult; paymentResponse: PaymentResponse }
+  | { status: 202; body: AskAccepted; paymentResponse: PaymentResponse };
 
 export interface AskService {
   requestQuote(question: string): PaymentRequired;
@@ -65,24 +70,12 @@ export function deriveQid(questionHash: Hex, salt: Hex): Hex {
   );
 }
 
-// What an API caller may see of a question at this point in its life.
-export function toQuestionResult(row: QuestionRow): QuestionResult {
-  const started = row.stage !== 'QUOTED' && row.stage !== 'EXPIRED';
-  return {
-    qid: row.qid,
-    question: row.question,
-    stage: row.stage,
-    ...(started ? { status: 'PENDING' as const, amount: row.price.toString() } : {}),
-    ...(row.payer ? { payer: row.payer } : {}),
-    ...(row.depositTx ? { tx: { deposit: row.depositTx } } : {}),
-    createdAt: row.createdAt,
-  };
-}
-
 export function createAskService(deps: AskDeps): AskService {
-  const { store, chain, config, logger } = deps;
-  const now = deps.now ?? (() => Date.now());
+  const { ctx, pipeline, corpus, config } = deps;
+  const { store, chain, logger, now } = ctx;
   const randomSalt = deps.randomSalt ?? (() => toHex(randomBytes(16)));
+  const waitMs = deps.requestWaitMs ?? REQUEST_WAIT_MS;
+  const resultOf = (row: QuestionRow) => toQuestionResult(row, corpus);
 
   function requestQuote(question: string): PaymentRequired {
     const questionHash = keccak256(toBytes(question));
@@ -112,7 +105,7 @@ export function createAskService(deps: AskDeps): AskService {
     if (row.stage === 'EXPIRED') throw new AppError('QUESTION_NOT_FOUND');
     if (row.stage !== 'QUOTED') {
       // A replay or a parallel twin: no second deposit, and the caller sees where it stands.
-      throw new AppError('QUESTION_ALREADY_SETTLED', toQuestionResult(row));
+      throw new AppError('QUESTION_ALREADY_SETTLED', resultOf(row));
     }
     if (now() >= row.quoteExpiresAt) {
       transitionStage(store, row.qid, 'QUOTED', 'EXPIRED', now());
@@ -129,9 +122,12 @@ export function createAskService(deps: AskDeps): AskService {
       quote: quoteOf(row.qid, row.price, row.quoteExpiresAt),
       nowSeconds: Math.floor(now() / 1000),
     });
-    // 4. Both wallets can cover it. RPC trouble here is "not charged yet", so 503 is honest.
+    // 4. Both wallets can cover it, and the tx queue is not stuck (a stuck queue could not settle
+    //    what it takes). RPC trouble here is "not charged yet", so 503 is honest.
     try {
-      if (!(await providerCanPayGas(chain))) throw new AppError('CHAIN_UNAVAILABLE');
+      if (!txQueueHealthy(chain) || !(await providerCanPayGas(chain))) {
+        throw new AppError('CHAIN_UNAVAILABLE');
+      }
       await ensurePayerCanPay(chain, payer, row.price);
     } catch (error) {
       if (error instanceof AppError) throw error;
@@ -141,12 +137,15 @@ export function createAskService(deps: AskDeps): AskService {
     // 5. Win the stage. Only the winner may send a deposit.
     if (!transitionStage(store, row.qid, 'QUOTED', 'DEPOSITING', now())) {
       const current = findQuestion(store, row.qid);
-      throw new AppError(
-        'QUESTION_ALREADY_SETTLED',
-        current ? toQuestionResult(current) : undefined,
-      );
+      throw new AppError('QUESTION_ALREADY_SETTLED', current ? resultOf(current) : undefined);
     }
-    return deposit(row, payer, payload);
+    // Held for the whole deposit, so recovery does not reconcile a deposit that is in progress.
+    ctx.inflight.add(row.qid);
+    try {
+      return await deposit(row, payer, payload);
+    } finally {
+      ctx.inflight.delete(row.qid);
+    }
   }
 
   async function deposit(
@@ -155,25 +154,58 @@ export function createAskService(deps: AskDeps): AskService {
     payload: PaymentPayload,
   ): Promise<PaymentAccepted> {
     const { authorization, signature } = payload.payload;
-    const outcome = await sendDeposit(chain, {
-      qid: row.qid,
-      payer,
-      value: BigInt(authorization.value),
-      validAfter: BigInt(authorization.validAfter),
-      validBefore: BigInt(authorization.validBefore),
-      signature,
-    });
+    // §5.6 C: the hash and nonce are stored before the tx is sent, so a crash at any point leaves
+    // a row that recovery can resolve by nonce.
+    const hooks: SendHooks = {
+      onSigned: (tx) => {
+        patchQuestion(store, row.qid, ['DEPOSITING'], now(), {
+          pendingTx: tx.hash,
+          pendingNonce: tx.nonce,
+        });
+      },
+      // Only while nothing is held: with money already in, a second deposit would revert.
+      shouldReplace: async () => (await readQuestionStatus(chain, row.qid)) === 'None',
+    };
+    const outcome = await sendDeposit(
+      chain,
+      {
+        qid: row.qid,
+        payer,
+        value: BigInt(authorization.value),
+        validAfter: BigInt(authorization.validAfter),
+        validBefore: BigInt(authorization.validBefore),
+        signature,
+      },
+      hooks,
+    );
 
     if (outcome.kind === 'mined' && outcome.success) {
       return deposited(row, payer, outcome.hash);
     }
     if (outcome.kind === 'unknown') {
       // AP-03-AC06: the tx may be on the network. Never answer 402, or the payer asks for a new
-      // quote and pays twice. Stay DEPOSITING; A5 reconciles it against the chain.
+      // quote and pays twice. Stay DEPOSITING with pending_tx stored; recovery resolves it.
       logger.warn({ qid: row.qid }, 'deposit outcome unknown');
       return accepted(row.qid, 'DEPOSITING');
     }
-    // Reverted or never sent. A revert does not mean no money: only the chain can say.
+    if (outcome.kind === 'not-sent' && outcome.rpcDown) {
+      // Nothing was signed: the node could not be reached. The payer has not been charged and can
+      // retry with the same signature while the quote lives.
+      backToQuoted(row.qid);
+      throw new AppError('CHAIN_UNAVAILABLE');
+    }
+    // Reverted or refused. A revert does not mean no money: only the chain can say.
+    logger.warn(
+      {
+        qid: row.qid,
+        kind: outcome.kind,
+        ...(outcome.kind === 'not-sent'
+          ? { reason: outcome.reason, errorName: outcome.errorName }
+          : {}),
+        ...(outcome.kind === 'mined' ? { tx: outcome.hash } : {}),
+      },
+      'deposit did not succeed; reading the chain to see whether money is held',
+    );
     let status: OnChainStatus;
     try {
       status = await readQuestionStatus(chain, row.qid);
@@ -184,26 +216,61 @@ export function createAskService(deps: AskDeps): AskService {
     // Money is held, but not by a tx of ours that succeeded: do not record a reverted hash as the deposit.
     if (status === 'Open') return deposited(row, payer, undefined);
     if (status === 'None') {
-      transitionStage(store, row.qid, 'DEPOSITING', 'QUOTED', now());
+      backToQuoted(row.qid);
       logger.info({ qid: row.qid }, 'deposit failed, nothing held; back to QUOTED');
       throw new AppError('PAYMENT_INVALID', { reason: 'DEPOSIT_FAILED' });
     }
-    // Paid or Refunded cannot follow a deposit this process just made; leave it for A5 to settle.
+    // Paid or Refunded cannot follow a deposit this process just made; recovery syncs it.
     logger.error({ qid: row.qid, status }, 'unexpected chain status after deposit');
     return accepted(row.qid, 'DEPOSITING');
   }
 
-  function deposited(
+  // Nothing is held and nothing is pending: the same signature can be sent again while the quote lives.
+  function backToQuoted(qid: Hex): void {
+    transitionStage(store, qid, 'DEPOSITING', 'QUOTED', now(), {
+      pendingTx: null,
+      pendingNonce: null,
+    });
+  }
+
+  // Money is in escrow: start the pipeline and hold the request for its result.
+  async function deposited(
     row: QuestionRow,
     payer: `0x${string}`,
     hash: Hex | undefined,
-  ): PaymentAccepted {
+  ): Promise<PaymentAccepted> {
     transitionStage(store, row.qid, 'DEPOSITING', 'ANSWERING', now(), {
       payer,
+      pendingTx: null,
+      pendingNonce: null,
       ...(hash ? { depositTx: hash } : {}),
     });
     logger.info({ qid: row.qid, tx: hash }, 'deposited');
-    return accepted(row.qid, 'ANSWERING', hash);
+
+    // Started now, not awaited: run() never rejects, and takes its own hold on the question before
+    // its first await, so there is no gap in which recovery could pick it up.
+    const pipelineDone = pipeline.run(row.qid);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, waitMs);
+    });
+    await Promise.race([pipelineDone, timeout]);
+    clearTimeout(timer);
+
+    const current = findQuestion(store, row.qid);
+    if (current && (current.stage === 'PAID' || current.stage === 'REFUNDED')) {
+      return {
+        status: 200,
+        body: resultOf(current),
+        paymentResponse: {
+          success: true,
+          network: FUJI_NETWORK,
+          ...(current.depositTx ? { transaction: current.depositTx } : {}),
+          ...(current.settleTx ? { settleTransaction: current.settleTx } : {}),
+        },
+      };
+    }
+    return accepted(row.qid, current?.stage ?? 'ANSWERING', hash);
   }
 
   function accepted(qid: Hex, stage: Stage, hash?: Hex): PaymentAccepted {

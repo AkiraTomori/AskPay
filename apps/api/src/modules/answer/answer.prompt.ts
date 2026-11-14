@@ -12,8 +12,9 @@ export const SYSTEM_PROMPT = [
   'Trả về DUY NHẤT một đối tượng JSON, không có chữ nào ngoài JSON, theo dạng:',
   '{"noBasis": boolean, "answer": string, "citations": [{"candidateId": "C1", "quote": string}]}',
   '- noBasis=true nếu không ứng viên nào trả lời được câu hỏi; khi đó citations phải là [].',
-  '- answer: tiếng Việt, tối đa 1200 ký tự.',
-  '- citations: 0 đến 5 mục. candidateId CHỈ được là một ID trong danh sách ứng viên.',
+  '- answer: tiếng Việt, tối đa 1200 ký tự. Chỉ trả lời điều được hỏi, dựa trên các Khoản bạn trích; không thêm quy định cho đối tượng hay trường hợp mà câu hỏi không nhắc tới.',
+  '- citations: 0 đến 5 mục, thường 1 đến 3. candidateId CHỈ được là một ID trong danh sách ứng viên.',
+  '- Chỉ trích ứng viên TRỰC TIẾP trả lời câu hỏi. Không trích ứng viên chỉ liên quan gián tiếp hoặc nói về đối tượng khác (ví dụ người chưa thành niên, lao động nữ, người cao tuổi) khi câu hỏi không nhắc tới đối tượng đó.',
   `- quote: chép NGUYÊN VĂN một đoạn liên tiếp từ văn bản của ứng viên đó, dài ít nhất ${MIN_QUOTE_LENGTH} ký tự.`,
 ].join('\n');
 

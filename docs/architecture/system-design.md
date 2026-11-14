@@ -218,7 +218,7 @@ Chạy **theo thứ tự**; dừng ở bước đầu tiên không đạt.
 | C1 | Có ít nhất một trích dẫn | Tất định | `NO_CITATION` (không cần chữ ký: provider gọi `settle` với danh sách rỗng) |
 | C2 | Mỗi `quote` sau chuẩn hoá là **chuỗi con** của nguyên văn Khoản, dài ≥ 15 ký tự | Tất định | `CHECKER_REJECTED` |
 | C3 | Câu trả lời không nhắc "Điều N" nào ngoài các Điều đã trích (regex) | Tất định | `CHECKER_REJECTED` |
-| C4 | LLM-judge: mỗi Khoản được trích có trả lời câu hỏi không (`yes`/`no`, nhiệt độ 0). **Một lần gọi cho tất cả Khoản** (không gọi từng Khoản, để vừa ngân sách pipeline và hạn mức token); thử lại một lần. Judge chỉ thấy câu hỏi và nguyên văn Khoản, không thấy câu trả lời. Mọi Khoản phải `yes` thì mới đạt | LLM | `CHECKER_REJECTED` |
+| C4 | LLM-judge: mỗi Khoản được trích có trả lời câu hỏi không (`yes`/`no`, nhiệt độ 0). **Một lần gọi cho tất cả Khoản** (không gọi từng Khoản, để vừa ngân sách pipeline và hạn mức token); thử lại một lần. Judge chỉ thấy câu hỏi và nguyên văn Khoản, không thấy câu trả lời. Câu hỏi do người dùng nhập nên **không đáng tin**: prompt đặt nó sau các Khoản, mã hoá thành một chuỗi JSON và dặn không làm theo (đo ở A5: ép "no" thành công 6/10 với prompt cũ, 0/10 sau khi cứng hoá). Mọi Khoản phải `yes` thì mới đạt | LLM | `CHECKER_REJECTED` |
 | — | Ký `Verdict(qid, answerHash, citationsHash, pass)` bằng EIP-712 với **khoá checker** | — | — |
 
 **Checker ký đúng thứ nó đã kiểm (T-13).**
@@ -351,7 +351,8 @@ Hai tx cùng nhắm vào một câu `Open`. Tx nào mined trước thì thắng;
 
 Bảng D chỉ chạy lúc khởi động. Khi server đang chạy, indexer vẫn có thể thấy `Deposited` cho một `qid` mà pipeline không còn theo dõi. Ví dụ: tx deposit mined sau khi câu đã bị đánh `EXPIRED`, hoặc sau khi server đã đưa câu về `QUOTED`.
 
-- Mỗi khi indexer ghi một event `Deposited`, nó kiểm `questions.stage` của `qid` đó.
+- **Ở A5**, chưa có indexer, nên `ask.recovery` tự quét log `Deposited` rồi gọi cùng một hàm `onDeposited(qid)`; A6 chỉ thay nguồn log. Quét theo dải **100 block** (giới hạn của RPC công khai Fuji), nghỉ 1 giây giữa các lần đọc, lưu `indexer_checkpoint`. Khi mất DB chỉ quét lùi 24 giờ. **Owner chốt 14/11/2026: giữ quét lùi 24 giờ** (phương án a), vì chưa có URL RPC riêng. Hệ quả được chấp nhận: deposit cũ hơn 24 giờ mà server mất DB thì chỉ người hỏi tự `claimRefund` (AP-06), nên AP-05-AC08 (Q-11, "câu không còn nội dung trên server thì được tự hoàn tiền") **chỉ đạt cho deposit trong 24 giờ gần nhất**; đây là giới hạn đã biết, không phải lỗi. Có RPC riêng với dải log rộng thì đặt `RPC_URL`, `LOG_RANGE_BLOCKS` và nâng `SCAN_LOOKBACK_BLOCKS` để phủ toàn bộ. Lỗi RPC không phải lỗi dải thì dừng lượt quét và chờ lùi dần; log xử lý lỗi thì không được bỏ qua.
+- Mỗi khi có một event `Deposited`, kiểm `questions.stage` của `qid` đó.
 - Stage là `DEPOSITING`: báo cho pipeline đang chờ (dòng "Deposited tới sau" ở bảng A).
 - Stage là `QUOTED` hoặc `EXPIRED`, hoặc không có dòng: đây là **deposit lạc**. Server gửi `refundByProvider` ngay (đi qua bảng C), log `ORPHAN_DEPOSIT`. Không chạy pipeline trả lời, vì người hỏi đã được báo là chưa trả hoặc hết hạn.
 - Stage khác (`ANSWERING` trở đi): bỏ qua, pipeline đã biết.

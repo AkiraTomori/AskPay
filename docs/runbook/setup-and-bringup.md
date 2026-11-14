@@ -42,13 +42,16 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | `PROVIDER_PRIVATE_KEY` | — | **Chỉ ở đây**, không bao giờ log |
 | `CHECKER_PRIVATE_KEY` | — | Phải khác provider: `config.ts` từ chối nếu hai khoá cho cùng một địa chỉ (T-04). Địa chỉ của nó phải bằng `checker` trong `contracts/deployments/fuji.json`, nếu không `settle` revert `InvalidCheckerSignature` |
 | `LLM_PROVIDER` | `groq` | `groq` hoặc `openrouter` (Q-01: Groq) |
-| `LLM_API_KEY` | — | **Chỉ ở đây**, không bao giờ log. Đặt cùng `LLM_MODEL` hoặc không đặt cả hai |
+| `LLM_API_KEY` | — | **Chỉ ở đây**, không bao giờ log. **Bắt buộc** cùng `LLM_MODEL`: thiếu thì server không chạy, vì mọi câu đã trả tiền sẽ bị hoàn |
 | `LLM_MODEL` | `qwen/qwen3.8-27b` | Model đã chốt ở Q-01 |
 | `LLM_JSON_MODE` | `true` | Đặt `false` nếu model từ chối `response_format` |
 | `PRICE_UNITS` | `50000` | 0,05 USDC (Q-02) |
 | `QUOTE_TTL_SECONDS` | `300` | |
 | `DATABASE_PATH` | `./data/askpay.sqlite` | Khi deploy: trỏ vào thư mục mount của ổ đĩa lưu bền (Render disk hoặc volume của Railway), ví dụ `/var/data/askpay.sqlite`. Không để trên ổ đĩa tạm (system-design T-14). |
 | `DEMO_FAKE_CITATION` | `false` | Chỉ bật khi quay demo bước 4 |
+| `LOG_RANGE_BLOCKS` | `100` | Số block tối đa cho một lần `eth_getLogs`. RPC công khai Fuji chỉ cho 100; RPC tốt hơn thì nâng lên |
+| `SCAN_LOOKBACK_BLOCKS` | `43200` | Khi chưa có checkpoint (DB mới hoặc mất DB): quét lùi bao nhiêu block tìm deposit lạc (~1 block mỗi 2 giây, nên 43200 là 24 giờ). Owner chốt giữ 24 giờ (14/11/2026, xem system-design §5.6 F) |
+| `CORPUS_PATH` | file trong `packages/corpus/data` | Tuỳ chọn: file corpus khác |
 | `PORT` | `4000` | |
 
 Không có biến env cho `settleCutoff` (60 giây) và `pipelineBudget` (120 giây). Đây là hằng số cố định trong `config.ts`, để môi trường deploy không lệch spec (system-design §5.6 B).

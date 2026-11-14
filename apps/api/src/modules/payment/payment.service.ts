@@ -1,7 +1,11 @@
 // Builds the x402 quote and verifies the payer's authorisation off-chain, before any gas is spent
 // (system-design §4.2). It never sends a transaction; payment.chain does.
-import { verifyTypedData, type Address } from 'viem';
-import { FAUCET_URL, MIN_VALID_BEFORE_SECONDS } from '../../shared/config.js';
+import { verifyTypedData, type Address, type Hex } from 'viem';
+import {
+  FAUCET_URL,
+  MIN_VALID_BEFORE_SECONDS,
+  SETTLE_CUTOFF_SECONDS,
+} from '../../shared/config.js';
 import { AppError } from '../../shared/errors.js';
 import {
   ESCROW_SCHEME,
@@ -13,10 +17,28 @@ import {
   type PaymentRequired,
 } from '@askpay/shared/x402';
 import type { InsufficientBalanceDetails } from '@askpay/shared/api';
-import type { DepositRequest, OnChainStatus, PaymentChain } from './payment.chain.js';
+import type {
+  ChainQuestion,
+  Choice,
+  DepositRequest,
+  OnChainStatus,
+  PaymentChain,
+  SettleRequest,
+  SettleResult,
+} from './payment.chain.js';
+import type { SendHooks } from '../../shared/tx-queue.js';
 
 // Other modules reach payments only through this service (codebase.md §3), never payment.chain.
-export type { DepositRequest, OnChainStatus, PaymentChain };
+export type {
+  ChainQuestion,
+  DepositRequest,
+  OnChainStatus,
+  PaymentChain,
+  SettleRequest,
+  SettleResult,
+};
+export type { SendHooks };
+export type { SettleEvent } from './payment.chain.js';
 export type { TxOutcome } from '../../shared/tx-queue.js';
 
 // What the quote promised; stored with the question, so the check never depends on today's config.
@@ -131,13 +153,47 @@ export async function ensurePayerCanPay(
   throw new AppError('PAYMENT_INVALID', details);
 }
 
-// Thin on purpose: they keep `payment.chain` an implementation detail of this module.
+// Thin wrappers: they keep `payment.chain` an implementation detail of this module.
 export const providerCanPayGas = (chain: PaymentChain): Promise<boolean> =>
   chain.providerCanPayGas();
 
-export const readQuestionStatus = (
-  chain: PaymentChain,
-  qid: `0x${string}`,
-): Promise<OnChainStatus> => chain.questionStatus(qid);
+export const readQuestion = (chain: PaymentChain, qid: Hex): Promise<ChainQuestion> =>
+  chain.question(qid);
 
-export const sendDeposit = (chain: PaymentChain, request: DepositRequest) => chain.deposit(request);
+export const readQuestionStatus = async (chain: PaymentChain, qid: Hex): Promise<OnChainStatus> =>
+  (await chain.question(qid)).status;
+
+export const sendDeposit = (chain: PaymentChain, request: DepositRequest, hooks?: SendHooks) =>
+  chain.deposit(request, hooks);
+
+// Seconds left to settle, measured against the latest BLOCK, because the contract compares the
+// deadline with block.timestamp (§5.6 B). The server clock plays no part.
+export async function secondsLeft(chain: PaymentChain, qid: Hex): Promise<number> {
+  const [question, blockTime] = await Promise.all([
+    chain.question(qid),
+    chain.latestBlockTimestamp(),
+  ]);
+  return question.deadline - blockTime;
+}
+
+// The cutoff rule (§5.6 B), applied before EVERY signing of a settle: first send, replacement and
+// resend after a restart. Close to the deadline a settle would race the payer's "claim refund", so
+// the provider refunds instead. A replacement uses the same nonce, so only one of the two mines.
+export function chooseBeforeSigning(chain: PaymentChain, qid: Hex): () => Promise<Choice> {
+  return async () =>
+    (await secondsLeft(chain, qid)) >= SETTLE_CUTOFF_SECONDS ? 'settle' : 'refund';
+}
+
+export const sendSettle = (chain: PaymentChain, request: SettleRequest, hooks?: SendHooks) =>
+  chain.settle(request, chooseBeforeSigning(chain, request.qid), hooks);
+
+export const sendRefund = (chain: PaymentChain, qid: Hex, hooks?: SendHooks) =>
+  chain.refund(qid, hooks);
+
+export const txQueueHealthy = (chain: PaymentChain): boolean => chain.txHealthy();
+export const readNonceState = (chain: PaymentChain) => chain.nonceState();
+export const readReceipt = (chain: PaymentChain, hash: Hex, qid: Hex) => chain.receiptOf(hash, qid);
+export const readPendingFees = (chain: PaymentChain, hash: Hex) => chain.pendingFees(hash);
+export const readLatestBlock = (chain: PaymentChain) => chain.latestBlock();
+export const readDepositedBetween = (chain: PaymentChain, from: bigint, to: bigint) =>
+  chain.depositedBetween(from, to);

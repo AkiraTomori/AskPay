@@ -7,12 +7,18 @@ import type { LlmConfig } from './llm.js';
 // Fixed on purpose, not env (system-design §5.6 B): they are behaviour in acceptance criteria, so a
 // deploy environment must not be able to drift from the spec. Change them in code, with a test.
 export const SETTLE_CUTOFF_SECONDS = 60;
+// What the pipeline needs before settle: an LLM call twice, the checker, one replacement tx. A
+// deposit that lands with less than cutoff + this left is refunded instead of answered (§5.6 A).
 export const PIPELINE_BUDGET_SECONDS = 120;
 // A deposit mined after the authorisation expired would revert, so refuse chances that thin.
 export const MIN_VALID_BEFORE_SECONDS = 60;
 export const FAUCET_URL = 'https://faucet.circle.com';
 // One LLM call may take at most this long; a failed call gets one retry (system-design §5.3, §5.6 B).
 export const LLM_CALL_TIMEOUT_MS = 20_000;
+// POST /ask holds the request this long, then answers 202 and the client polls (T-07).
+export const REQUEST_WAIT_MS = 60_000;
+// How often unresolved questions are reconciled with the chain while the server runs (§5.6 D, F).
+export const SWEEP_INTERVAL_MS = 15_000;
 
 const privateKey = z
   .string()
@@ -24,8 +30,8 @@ const envSchema = z.object({
   CHAIN_ID: z.coerce.number().pipe(z.literal(FUJI_CHAIN_ID)).default(FUJI_CHAIN_ID),
   RPC_URL: z.url(),
   PROVIDER_PRIVATE_KEY: privateKey,
-  // Signs verdicts only (T-04). Optional until the answer pipeline is wired in (A5).
-  CHECKER_PRIVATE_KEY: privateKey.optional(),
+  // Signs verdicts only (T-04). Required: a server that takes money must be able to settle it.
+  CHECKER_PRIVATE_KEY: privateKey,
   PRICE_UNITS: z
     .string()
     .regex(/^[1-9][0-9]*$/)
@@ -39,26 +45,40 @@ const envSchema = z.object({
   DATABASE_PATH: z.string().min(1).default('./data/askpay.sqlite'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(20),
-  // The LLM is optional until the answer pipeline is wired in (A5); both must be set together.
+  // Required: without an LLM every question would be refunded after the payer already paid.
   LLM_PROVIDER: z.enum(['openrouter', 'groq']).default('openrouter'),
-  LLM_API_KEY: z.string().min(1).optional(),
-  LLM_MODEL: z.string().min(1).optional(),
+  LLM_API_KEY: z.string().min(1),
+  LLM_MODEL: z.string().min(1),
   LLM_JSON_MODE: z
     .enum(['true', 'false'])
     .default('true')
     .transform((value) => value === 'true'),
+  // Demo only (system-design §5.5): honoured for a question that starts with "#demo-fake".
+  DEMO_FAKE_CITATION: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  CORPUS_PATH: z.string().min(1).optional(),
+  // How many blocks one eth_getLogs may span on this RPC. The public Fuji RPC allows 100.
+  LOG_RANGE_BLOCKS: z.coerce.number().int().min(1).max(10_000).default(100),
+  // With no checkpoint (a new or lost database), how many blocks back to look for stray deposits.
+  SCAN_LOOKBACK_BLOCKS: z.coerce.number().int().min(1).default(43_200),
 });
 
 export interface Config {
   rpcUrl: string;
   providerPrivateKey: `0x${string}`;
-  checkerPrivateKey: `0x${string}` | undefined;
+  checkerPrivateKey: `0x${string}`;
   priceUnits: bigint;
   quoteTtlSeconds: number;
   databasePath: string;
   port: number;
   rateLimitPerMinute: number;
-  llm: LlmConfig | undefined;
+  llm: LlmConfig;
+  demoFakeCitation: boolean;
+  corpusPath: string | undefined;
+  logRangeBlocks: number;
+  scanLookbackBlocks: number;
 }
 
 // Never log the returned object: it holds the provider and checker keys.
@@ -70,17 +90,11 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     throw new Error(`Invalid configuration: ${names.join(', ')}`);
   }
   const value = parsed.data;
-  if (Boolean(value.LLM_API_KEY) !== Boolean(value.LLM_MODEL)) {
-    throw new Error(
-      `Invalid configuration: ${value.LLM_API_KEY ? 'LLM_MODEL' : 'LLM_API_KEY'} (set LLM_API_KEY and LLM_MODEL together)`,
-    );
-  }
   // T-04: one key for both roles would let the wallet that receives the money approve its own
   // answers. Compare addresses, and name the variable only, never a value.
   if (
-    value.CHECKER_PRIVATE_KEY &&
     privateKeyToAccount(value.CHECKER_PRIVATE_KEY as `0x${string}`).address ===
-      privateKeyToAccount(value.PROVIDER_PRIVATE_KEY as `0x${string}`).address
+    privateKeyToAccount(value.PROVIDER_PRIVATE_KEY as `0x${string}`).address
   ) {
     throw new Error(
       'Invalid configuration: CHECKER_PRIVATE_KEY (must differ from the provider key)',
@@ -89,20 +103,21 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
   return {
     rpcUrl: value.RPC_URL,
     providerPrivateKey: value.PROVIDER_PRIVATE_KEY as `0x${string}`,
-    checkerPrivateKey: value.CHECKER_PRIVATE_KEY as `0x${string}` | undefined,
+    checkerPrivateKey: value.CHECKER_PRIVATE_KEY as `0x${string}`,
     priceUnits: value.PRICE_UNITS,
     quoteTtlSeconds: value.QUOTE_TTL_SECONDS,
     databasePath: value.DATABASE_PATH,
     port: value.PORT,
     rateLimitPerMinute: value.RATE_LIMIT_PER_MINUTE,
-    llm:
-      value.LLM_API_KEY && value.LLM_MODEL
-        ? {
-            provider: value.LLM_PROVIDER,
-            apiKey: value.LLM_API_KEY,
-            model: value.LLM_MODEL,
-            jsonMode: value.LLM_JSON_MODE,
-          }
-        : undefined,
+    llm: {
+      provider: value.LLM_PROVIDER,
+      apiKey: value.LLM_API_KEY,
+      model: value.LLM_MODEL,
+      jsonMode: value.LLM_JSON_MODE,
+    },
+    demoFakeCitation: value.DEMO_FAKE_CITATION,
+    corpusPath: value.CORPUS_PATH,
+    logRangeBlocks: value.LOG_RANGE_BLOCKS,
+    scanLookbackBlocks: value.SCAN_LOOKBACK_BLOCKS,
   };
 }

@@ -22,12 +22,13 @@ async function quoted(test = createTestApp()) {
 }
 
 describe('AP-03-AC01 a valid signature deposits the exact quoted amount', () => {
-  it('sends one deposit with the signed values and answers 202 ANSWERING', async () => {
+  it('sends one deposit with the signed values and, with the pipeline wired in, answers 200 PAID', async () => {
     const { test, quote, qid } = await quoted();
     const response = await pay(test, quote, await signPayment(quote));
 
-    expect(response.status).toBe(202);
-    expect(response.body).toEqual({ data: { qid, stage: 'ANSWERING' } });
+    // A4 stopped at 202 ANSWERING; from A5 the same request runs on to the final result.
+    expect(response.status).toBe(200);
+    expect(response.body.data).toMatchObject({ qid, stage: 'PAID', status: 'PAID' });
     expect(test.chain.deposit).toHaveBeenCalledTimes(1);
     const [[call] = []] = test.chain.deposit.mock.calls;
     if (!call) throw new Error('deposit was not called');
@@ -42,12 +43,15 @@ describe('AP-03-AC01 a valid signature deposits the exact quoted amount', () => 
     expect(call.signature).toMatch(/^0x[0-9a-f]{130}$/);
 
     const header = decodeHeader(paymentResponseSchema, response.headers['payment-response']);
-    expect(header).toMatchObject({ success: true, transaction: DEPOSIT_TX });
-    expect(stageOf(test, qid)).toBe('ANSWERING');
+    expect(header).toMatchObject({ success: true, transaction: test.chain.sent[0]?.hash });
+    expect(stageOf(test, qid)).toBe('PAID');
     const row = test.store
       .prepare('SELECT payer, deposit_tx FROM questions WHERE qid = ?')
       .get(qid);
-    expect(row).toMatchObject({ payer: payer.address.toLowerCase(), deposit_tx: DEPOSIT_TX });
+    expect(row).toMatchObject({
+      payer: payer.address.toLowerCase(),
+      deposit_tx: test.chain.sent[0]?.hash,
+    });
   });
 });
 
@@ -128,13 +132,13 @@ describe('AP-03-AC03 replaying a signature never charges twice', () => {
   it('the second identical request is 409 and sends nothing', async () => {
     const { test, quote, qid } = await quoted();
     const header = await signPayment(quote);
-    expect((await pay(test, quote, header)).status).toBe(202);
+    expect((await pay(test, quote, header)).status).toBe(200);
 
     const replay = await pay(test, quote, header);
     expect(replay.status).toBe(409);
     expect(replay.body.error.code).toBe('QUESTION_ALREADY_SETTLED');
     // details tell the caller where the question stands (api.md §3.3).
-    expect(replay.body.error.details).toMatchObject({ qid, stage: 'ANSWERING', status: 'PENDING' });
+    expect(replay.body.error.details).toMatchObject({ qid, stage: 'PAID', status: 'PAID' });
     expect(test.chain.deposit).toHaveBeenCalledTimes(1);
   });
 
@@ -157,7 +161,7 @@ describe('AP-03-AC03 replaying a signature never charges twice', () => {
     release();
     const statuses = (await Promise.all([first, second])).map((r) => r.status).sort();
 
-    expect(statuses).toEqual([202, 409]);
+    expect(statuses).toEqual([200, 409]);
     expect(chain.deposit).toHaveBeenCalledTimes(1);
   });
 });
@@ -175,7 +179,7 @@ describe('AP-03-AC04 the paid question must be the quoted one', () => {
   it('the same text in decomposed Unicode still matches (NFC)', async () => {
     const { test, quote } = await quoted();
     const response = await pay(test, quote, await signPayment(quote), QUESTION.normalize('NFD'));
-    expect(response.status).toBe(202);
+    expect(response.status).toBe(200);
   });
 });
 
@@ -216,14 +220,16 @@ describe('AP-03-AC06 an unknown deposit outcome is never reported as a failure',
 
   it('a reverted deposit with money held (chain Open) counts as deposited', async () => {
     const chain = createFakeChain({
-      deposit: vi.fn(async () => ({ kind: 'mined' as const, hash: DEPOSIT_TX, success: false })),
-      questionStatus: vi.fn(async () => 'Open' as const),
+      deposit: vi.fn(async (request) => {
+        // The tx reverted, yet the escrow holds the money (e.g. a duplicate): only the chain knows.
+        chain.plantDeposit(request.qid);
+        return { kind: 'mined' as const, hash: DEPOSIT_TX, success: false, logs: [] };
+      }),
     });
     const { test, quote, qid } = await quoted(createTestApp({ chain }));
     const response = await pay(test, quote, await signPayment(quote));
-    expect(response.status).toBe(202);
-    expect(response.body.data.stage).toBe('ANSWERING');
-    expect(stageOf(test, qid)).toBe('ANSWERING');
+    expect(response.status).toBe(200);
+    expect(stageOf(test, qid)).toBe('PAID');
     // The reverted tx is not the deposit: it must not be stored or announced as one.
     const row = test.store.prepare('SELECT deposit_tx FROM questions WHERE qid = ?').get(qid);
     expect(row).toMatchObject({ deposit_tx: null });
@@ -233,8 +239,12 @@ describe('AP-03-AC06 an unknown deposit outcome is never reported as a failure',
 
   it('a reverted deposit with nothing held (chain None) returns to QUOTED and is 402', async () => {
     const chain = createFakeChain({
-      deposit: vi.fn(async () => ({ kind: 'mined' as const, hash: DEPOSIT_TX, success: false })),
-      questionStatus: vi.fn(async () => 'None' as const),
+      deposit: vi.fn(async () => ({
+        kind: 'mined' as const,
+        hash: DEPOSIT_TX,
+        success: false,
+        logs: [],
+      })),
     });
     const { test, quote, qid } = await quoted(createTestApp({ chain }));
     const response = await pay(test, quote, await signPayment(quote));
@@ -245,8 +255,8 @@ describe('AP-03-AC06 an unknown deposit outcome is never reported as a failure',
 
   it('a failed deposit whose chain status cannot be read stays DEPOSITING', async () => {
     const chain = createFakeChain({
-      deposit: vi.fn(async () => ({ kind: 'not-sent' as const, reason: 'rpc down' })),
-      questionStatus: vi.fn(async () => {
+      deposit: vi.fn(async () => ({ kind: 'not-sent' as const, reason: 'reverted' })),
+      question: vi.fn(async () => {
         throw new Error('rpc down');
       }),
     });

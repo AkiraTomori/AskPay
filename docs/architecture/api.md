@@ -200,7 +200,12 @@ Câu bị hoàn tiền vẫn trả `200`, với `status: "REFUNDED"` và `reason
 | LLM lỗi hoặc checker lỗi sau khi đã giữ tiền | `200`, `status: "REFUNDED"`, `reason: "ANSWER_FAILED"` (qua `refundByProvider`). Không trả mã 5xx. |
 | Server không chốt được (sai khoá, tx kẹt) | `202`, rồi poll. Tới `deadline` thì `status: "CLAIMABLE"` và người hỏi tự nhận lại tiền. |
 
-**Trạng thái triển khai (A4):** `POST /api/ask` dừng sau khi `Deposited`: trả `202 { qid, stage: "ANSWERING" }` kèm header `PAYMENT-RESPONSE` có `transaction` là tx deposit. Trả lời, checker và `settle` thuộc A5, nên cho tới lúc đó tiền nằm trong escrow tới `deadline` (rồi người hỏi tự `claimRefund`, hoặc provider gọi `refundByProvider`).
+**Trạng thái triển khai (A5):** `POST /api/ask` chạy trọn luồng: giữ tiền, trả lời, kiểm tra, chốt.
+- Request chờ tối đa 60 giây (`REQUEST_WAIT_MS`). Chốt xong trong thời gian đó thì trả `200` với kết quả (Paid hoặc Refunded, kèm `settleTransaction` ở `PAYMENT-RESPONSE`). Quá 60 giây thì trả `202 { qid, stage }` và pipeline vẫn chạy tiếp.
+- Đã giữ tiền nhưng chưa biết kết quả deposit: `202 { stage: "DEPOSITING" }`. Server đối chiếu tiếp theo nonce, không cần request.
+- `verifiedOnChain` luôn là `false` ở A5. Việc đọc receipt `Paid` qua RPC và tính lại hash thuộc A6.
+- `GET /api/questions/:qid` thuộc A6, nên lúc này client chỉ biết kết quả qua `200` của chính request hỏi. Câu quá 60 giây phải đợi A6 để poll.
+- Khi khởi động, server từ chối chạy nếu: khoá provider hoặc khoá checker không phải `provider()` và `checker()` trên chain, hoặc root corpus dựng lại khác `lawRoot` đã đăng ký.
 
 Chi tiết từng đường lỗi: [system-design §5.6](./system-design.md).
 

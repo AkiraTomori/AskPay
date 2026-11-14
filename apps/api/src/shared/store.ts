@@ -34,6 +34,13 @@ CREATE TABLE IF NOT EXISTS questions (
   updated_at        INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS questions_stage ON questions (stage);
+
+-- system-design §7: where the scan for Deposited logs stopped. One row. A lost database loses it too,
+-- which is exactly right: the scan then starts over from the deployment block.
+CREATE TABLE IF NOT EXISTS indexer_checkpoint (
+  id         INTEGER PRIMARY KEY CHECK (id = 1),
+  last_block INTEGER NOT NULL
+);
 `;
 
 export function openStore(path: string): Store {
