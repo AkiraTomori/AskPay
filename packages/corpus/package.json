@@ -1,0 +1,16 @@
+{
+  "name": "@askpay/corpus",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./normalize": {
+      "types": "./dist/normalize.d.ts",
+      "default": "./dist/normalize.js"
+    },
+    "./parse": {
+      "types": "./dist/parse.d.ts",
+      "default": "./dist/parse.js"
+    }
+  }
+}

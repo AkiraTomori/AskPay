@@ -29,7 +29,7 @@ Tách theo thẻ `<p>`, chuẩn hoá NFC và khoảng trắng:
 ## Những điểm parser (C1) phải xử lý
 
 1. **Tiêu đề Chương bị dính tên chương**, ví dụ `Chương IIVIỆC LÀM, TUYỂN DỤNG…`, vì trong HTML có `<br>` ở giữa. Cần tách trước khi bỏ thẻ.
-2. **12 Điều có đoạn dẫn trước Khoản 1.** Ví dụ Điều 25: "Thời gian thử việc do hai bên thỏa thuận… nhưng chỉ được thử việc một lần…", rồi mới tới khoản 1–4. Đoạn này có giá trị pháp lý nhưng không thuộc Khoản nào. **Cần chốt cách xử lý** (đề xuất: coi là Khoản `0` của Điều đó, giống Điều không chia Khoản).
+2. **12 Điều có đoạn dẫn trước Khoản 1.** Ví dụ Điều 25: "Thời gian thử việc do hai bên thỏa thuận… nhưng chỉ được thử việc một lần…", rồi mới tới khoản 1–4. Đoạn này có giá trị pháp lý nhưng không thuộc Khoản nào. **Đã chốt (owner, 14/11/2026): là Khoản `0` của Điều đó**, giống Điều không chia Khoản. Nguyên văn Khoản không gồm số thứ tự (owner, 14/11/2026). Xem system-design §6.
 3. **Điều 219 trích nguyên văn điều khoản của luật khác** (Luật Bảo hiểm xã hội…), trong đó có cả dòng `“Điều 54. …` và các khoản đánh số riêng. Parser chỉ nhận tiêu đề Điều **không** bắt đầu bằng dấu ngoặc kép, và phải gom phần trích dẫn vào Khoản của Điều 219.
 4. Các Điểm `a)`, `b)`… nằm trong nguyên văn Khoản (đúng thiết kế).
 
