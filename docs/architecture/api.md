@@ -90,7 +90,7 @@ Header `PAYMENT-REQUIRED` là base64 của JSON dưới đây. Body là chính J
 }
 ```
 
-- `asset` ở trên là địa chỉ USDC Fuji, cần xác nhận lại ở POC-1. Nếu POC-1 không đạt thì đây là `MockUSDC` (T-12).
+- `asset` ở trên là địa chỉ USDC Fuji, đã xác nhận ở POC-1 (T-12). `MockUSDC` chỉ dùng trong test.
 - `tokenName` và `tokenVersion` là domain EIP-712 của token. Lấy từ hàm `name()` và `version()` của token, không chép tay.
 
 ### 3.2 Lần 2: trả tiền
