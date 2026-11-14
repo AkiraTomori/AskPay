@@ -372,6 +372,10 @@ Nhờ vậy, mọi `Deposited` đều có người chịu trách nhiệm chốt,
 
 - **Nguồn:** Bộ luật Lao động 2019 (45/2019/QH14), file do owner tải từ vbpl.vn (Q-06).
 - **Đơn vị:** Khoản. Điều không chia Khoản là Khoản `0`. Các Điểm `a)`, `b)`… nằm trong nguyên văn Khoản.
+- **Đoạn dẫn trước Khoản 1** *(owner chốt 14/11/2026)*: 12 Điều (3, 25, 56, 58, 67, 99, 108, 120, 125, 187, 199, 205) có một đoạn dẫn trước Khoản 1. Đoạn đó là Khoản `0` của Điều, đứng cạnh Khoản 1…n.
+- **Nguyên văn Khoản không gồm số thứ tự** *(owner chốt 14/11/2026)*: Khoản 2 lưu `Không quá 60 ngày…`, không lưu `2. Không quá 60 ngày…`. Số Khoản nằm ở trường `khoan` và trong leaf.
+- **Điều 219** trích điều khoản của luật khác: mọi dòng nằm giữa cặp ngoặc kép `“…”` (kể cả dòng đánh số riêng như `1.` hay `1a.`) thuộc về Khoản của Điều 219, không tách thành Khoản mới.
+- **Phần ngoài Điều** (tiêu đề Chương, Mục, lời mở đầu, chữ ký sau câu "Bộ luật này được Quốc hội… thông qua ngày…") không vào corpus.
 - **Chuẩn hoá nguyên văn:** Unicode NFC → thay mọi chuỗi khoảng trắng (kể cả xuống dòng) bằng một dấu cách → bỏ khoảng trắng đầu và cuối.
 - **`lawId`** = `keccak256("VN-45/2019/QH14")`.
 - **Leaf** (StandardMerkleTree của OpenZeppelin, kiểu `["bytes32","uint16","uint16","bytes32"]`):
