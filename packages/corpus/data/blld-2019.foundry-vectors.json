@@ -1,0 +1,212 @@
+{
+  "lawLabel": "VN-45/2019/QH14",
+  "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+  "root": "0xda14ddb6540051a3538091a88a0a68bd39b2a8f4e6d218bdaf6b372dd65517a5",
+  "entries": [
+    {
+      "dieu": 1,
+      "khoan": 0,
+      "text": "Bộ luật Lao động quy định tiêu chuẩn lao động; quyền, nghĩa vụ, trách nhiệm của người lao động, người sử dụng lao động, tổ chức đại diện người lao động tại cơ sở, tổ chức đại diện người sử dụng lao động trong quan hệ lao động và các quan hệ khác liên quan trực tiếp đến quan hệ lao động; quản lý nhà nước về lao động.",
+      "textHash": "0x2c1780f759e78e5e6d7eb17912b2484b7961ca8dd3962730474163160f6ee04d",
+      "leaf": "0x33a8459c83d352e21359ebc0358d7e6bcbd21ae54f1c608fde235c5ad4e9b1c1",
+      "proof": [
+        "0x33a99241fb4dc0102a41968140833355b475fd7b6a7f5fb5cd41aab09ba29e6f",
+        "0xd15d3d19ab6615de784cf060d024f85397e88bfa69cf41e2495d7c921452e865",
+        "0xcf1ab38fa496b59fdaf4551dd3b1cd9d63979ec009f7fd0a70fd2e80add533e6",
+        "0xdf33585147237dc29dafb386a5e7c0ce092c19ad605bcf0ee2b7f8d306437293",
+        "0x9e915491cc620ff849b609a8a87650e1eb6d196bff20fe6aa341b62ac5ca8b75",
+        "0xc9048759d15627088b0c6ef2a9cfb1a5d4e5a97eb30dff04965f4f113d1ecc80",
+        "0x00442f9b5edcc3e84315252dad17de8c67490bc6a992a9cd01234fb20e0a79d8",
+        "0x30cf93e30d119919f0bd0649c3e357f36585a326fd47aa6fb378950c7b24c517",
+        "0xe09fb940d7dcbe408c4fd435c5ba362caf3c50071ea8faeca437bad04b10871d",
+        "0xc97c59dbfee745e8de36aa9451c124ebf6ced9f65d872abd2e810ff41eeefd12"
+      ],
+      "quote": "Bộ luật Lao động quy định tiêu chuẩn lao động; quyền, nghĩa",
+      "quoteHash": "0x8f48213e7024358bcf219aea3fd102788a940676afe0fa71e42b619f2e127a3a"
+    },
+    {
+      "dieu": 3,
+      "khoan": 0,
+      "text": "Trong Bộ luật này, các từ ngữ dưới đây được hiểu như sau:",
+      "textHash": "0x8c1e9534f63ff2b2845a2f06f827f18ea83577eda55d01c6f19a7f344a3f01ea",
+      "leaf": "0x03992b4aeeaa9be664827fe82a756ed33d9a15983f5172a9d116dc87a08e8c21",
+      "proof": [
+        "0x039433cc3398d224bd7501adf3a1115e29249fd65bd65ac65c0db8fcde45ab9d",
+        "0x8e0d887d5e0fcf7611c40a5e0ecef36eeb2a52456f4a9b5d51313e09b1e797db",
+        "0xa695de032c13b96de39f0709b2f7994f5c1c84eeb2de1765422a6fcc7f7d872c",
+        "0xae902bcdf84be6c26e915cbc97617eff66cc1d4f042661c1daefd5c92d24be37",
+        "0x220fa5b520e3c5a2f811cbaaaa3347cdfe73cff6c6dfb1202e23e02d0d150c90",
+        "0x756b90e1d943e7abd3a1cd803af5e26828c74bfb65208aa5a77f2b4b5fa4f469",
+        "0xd6be0875bbaf86355fb693d9a2aa38e602171a9b7eb0cc8cf91c1476cd0e68cc",
+        "0xd9edf6555529710fd16458ad79fa2ada5dcf954794f7199e86f16a129a540fb4",
+        "0x31df8b81e76177339edfcd83c753ce83decf25df0d836723b5e5eefce0021aee",
+        "0xc97c59dbfee745e8de36aa9451c124ebf6ced9f65d872abd2e810ff41eeefd12"
+      ],
+      "quote": "Trong Bộ luật này, các từ ngữ dưới đây được hiểu như sau:",
+      "quoteHash": "0x8c1e9534f63ff2b2845a2f06f827f18ea83577eda55d01c6f19a7f344a3f01ea"
+    },
+    {
+      "dieu": 3,
+      "khoan": 1,
+      "text": "Người lao động là người làm việc cho người sử dụng lao động theo thỏa thuận, được trả lương và chịu sự quản lý, điều hành, giám sát của người sử dụng lao động. Độ tuổi lao động tối thiểu của người lao động là đủ 15 tuổi, trừ trường hợp quy định tại Mục 1 Chương XI của Bộ luật này.",
+      "textHash": "0xeee79223cfbb252884f06091c7e2142caee1607950e17b7f018c1c24003c58cb",
+      "leaf": "0x7ddb0ffac8c5c9d5b735345a1c5ecea1f2b9b86b5d223d5b99383d6f2bf2fa82",
+      "proof": [
+        "0x7d53587f9180500d6e27ddee301cc02892d5844e7da972faec108ca039c1b488",
+        "0x8183925520173a728fef1e3d0f1387e71bab4bc13b817617d78c46653118b7f7",
+        "0xb698f1269b1a8b4a44017609558ef693acbcf7403323604bc59f53eacb265419",
+        "0xcb155c8a442fd77e6bf44b1ce4a7252466a6c8f4dd6a5ddcb94e02848dafde36",
+        "0xc7335b14b588494c4abf0391a833d159c816bb2f22454618268cc87bd192de44",
+        "0x1393cabe5cdca80c110c3b273366d4963581db8ef88586dbf8626e74a0a37363",
+        "0x72f2b063435210fd787e860c8750baeca6505e9d220fc7718771771d4d4d9b03",
+        "0x60a15fd4b804485ec4e2af51811d277d13e2ab5f5708329209e0d97ddd02d1cb",
+        "0xe09fb940d7dcbe408c4fd435c5ba362caf3c50071ea8faeca437bad04b10871d",
+        "0xc97c59dbfee745e8de36aa9451c124ebf6ced9f65d872abd2e810ff41eeefd12"
+      ],
+      "quote": "Người lao động là người làm việc cho người sử dụng lao động",
+      "quoteHash": "0x1c87b33b9efd597384e2e5b5eba325ff4db601ee3809d038a2d3e079b703090f"
+    },
+    {
+      "dieu": 35,
+      "khoan": 1,
+      "text": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước cho người sử dụng lao động như sau: a) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn; b) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng; c) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng; d) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.",
+      "textHash": "0x90d45a312cb95e53cbf3171fb52d10168dd7decf9706aabb2905bc710f501006",
+      "leaf": "0xd56deb5269e081ab062092ca0a8281d2d81e167569dd38cd7547ce5d721c4d58",
+      "proof": [
+        "0xd5690f09348e629a6f31e281c1458e6f5169b991caaef0cb28a1270c5bca8638",
+        "0xdba02b12bf62d17184618c77419fe54e9eb8496ec20996230a61bccf766591aa",
+        "0xdd154a8c540140c443be0356ab22fc9ae9e0ed3f6a0c43704b1b5dd65c122a91",
+        "0xf4e97529d6b5356b407e362684b79f1e763906fdd038ab6f484e8d2475502550",
+        "0xd11e71d80b3da1a54fbc2ee83e958d2f2c33a23ba211ada34d0aac5e1fbdd97c",
+        "0xd9478cf8c8fb4b66446e517e707858ac5b22c93a321df7766e80e2d275ba3ae7",
+        "0xa4e8badf24509ca9cd860f3333e459e0acb595676ea569ceb042540c28b0bbbf",
+        "0x9acc93e7664713f8e6be33530f2314dff5974b7efcdd1af6a5fa0dbbc457d6d6",
+        "0x4ab8ba6fef69433621fe704c39d1eae2e82f8bd214917abdd95f9be876bfd99c"
+      ],
+      "quote": "Người lao động có quyền đơn phương chấm dứt hợp đồng lao độn",
+      "quoteHash": "0x5f840376de774c90eee57ca155ce909d63c989528f1eff93fe4445e7a3894865"
+    },
+    {
+      "dieu": 219,
+      "khoan": 1,
+      "text": "Sửa đổi, bổ sung một số điều của Luật Bảo hiểm xã hội số 58/2014/QH13 đã được sửa đổi, bổ sung theo Luật số 84/2015/QH13 và Luật số 35/2018/QH14: a) Sửa đổi, bổ sung Điều 54 như sau: “Điều 54. Điều kiện hưởng lương hưu 1. Người lao động quy định tại các điểm a, b, c, d, g, h và i khoản 1 Điều 2 của Luật này, trừ trường hợp quy định tại khoản 3 Điều này, khi nghỉ việc có đủ 20 năm đóng bảo hiểm xã hội trở lên thì được hưởng lương hưu nếu thuộc một trong các trường hợp sau đây: a) Đủ tuổi theo quy định tại khoản 2 Điều 169 của Bộ luật Lao động; b) Đủ tuổi theo quy định tại khoản 3 Điều 169 của Bộ luật Lao động và có đủ 15 năm làm nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục do Bộ Lao động - Thương binh và Xã hội ban hành hoặc có đủ 15 năm làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn bao gồm cả thời gian làm việc ở nơi có phụ cấp khu vực hệ số 0,7 trở lên trước ngày 01 tháng 01 năm 2021; c) Người lao động có tuổi thấp hơn tối đa 10 tuổi so với tuổi nghỉ hưu của người lao động quy định tại khoản 2 Điều 169 của Bộ luật Lao động và có đủ 15 năm làm công việc khai thác than trong hầm lò; d) Người bị nhiễm HIV do tai nạn rủi ro nghề nghiệp trong khi thực hiện nhiệm vụ được giao. 2. Người lao động quy định tại điểm đ và điểm e khoản 1 Điều 2 của Luật này nghỉ việc có đủ 20 năm đóng bảo hiểm xã hội trở lên được hưởng lương hưu khi thuộc một trong các trường hợp sau đây: a) Có tuổi thấp hơn tối đa 05 tuổi so với tuổi nghỉ hưu quy định tại khoản 2 Điều 169 của Bộ luật Lao động, trừ trường hợp Luật Sĩ quan Quân đội nhân dân Việt Nam, Luật Công an nhân dân, Luật Cơ yếu, Luật Quân nhân chuyên nghiệp, công nhân và viên chức quốc phòng có quy định khác; b) Có tuổi thấp hơn tối đa 05 tuổi so với tuổi nghỉ hưu quy định tại khoản 3 Điều 169 của Bộ luật Lao động và có đủ 15 năm làm nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục do Bộ Lao động - Thương binh và Xã hội ban hành hoặc có đủ 15 năm làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn bao gồm cả thời gian làm việc ở nơi có phụ cấp khu vực hệ số 0,7 trở lên trước ngày 01 tháng 01 năm 2021; c) Người bị nhiễm HIV do tai nạn rủi ro nghề nghiệp trong khi thực hiện nhiệm vụ được giao. 3. Lao động nữ là cán bộ, công chức cấp xã hoặc là người hoạt động không chuyên trách ở xã, phường, thị trấn tham gia bảo hiểm xã hội khi nghỉ việc mà có từ đủ 15 năm đến dưới 20 năm đóng bảo hiểm xã hội và đủ tuổi nghỉ hưu quy định tại khoản 2 Điều 169 của Bộ luật Lao động thì được hưởng lương hưu. 4. Điều kiện về tuổi hưởng lương hưu đối với một số trường hợp đặc biệt theo quy định của Chính phủ.”; b) Sửa đổi, bổ sung Điều 55 như sau: “Điều 55. Điều kiện hưởng lương hưu khi suy giảm khả năng lao động 1. Người lao động quy định tại các điểm a, b, c, d, g, h và i khoản 1 Điều 2 của Luật này khi nghỉ việc có đủ 20 năm đóng bảo hiểm xã hội trở lên được hưởng lương hưu với mức thấp hơn so với người đủ điều kiện hưởng lương hưu quy định tại các điểm a, b và c khoản 1 Điều 54 của Luật này nếu thuộc một trong các trường hợp sau đây: a) Có tuổi thấp hơn tối đa 05 tuổi so với tuổi nghỉ hưu quy định tại khoản 2 Điều 169 của Bộ luật Lao động khi bị suy giảm khả năng lao động từ 61% đến dưới 81%; b) Có tuổi thấp hơn tối đa 10 tuổi so với tuổi nghỉ hưu quy định tại khoản 2 Điều 169 của Bộ luật Lao động khi bị suy giảm khả năng lao động từ 81% trở lên; c) Có đủ 15 năm trở lên làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục do Bộ Lao động - Thương binh và Xã hội ban hành và bị suy giảm khả năng lao động từ 61% trở lên. 2. Người lao động quy định tại điểm đ và điểm e khoản 1 Điều 2 của Luật này khi nghỉ việc có đủ 20 năm đóng bảo hiểm xã hội trở lên, bị suy giảm khả năng lao động từ 61% trở lên được hưởng lương hưu với mức thấp hơn so với người đủ điều kiện hưởng lương hưu quy định tại điểm a và điểm b khoản 2 Điều 54 của Luật này khi thuộc một trong các trường hợp sau đây: a) Có tuổi thấp hơn tối đa 10 tuổi so với tuổi nghỉ hưu quy định tại khoản 2 Điều 169 của Bộ luật Lao động; b) Có đủ 15 năm trở lên làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục do Bộ Lao động - Thương binh và Xã hội ban hành.”; c) Sửa đổi, bổ sung khoản 1 Điều 73 như sau: “1. Người lao động hưởng lương hưu khi có đủ các điều kiện sau đây: a) Đủ tuổi nghỉ hưu theo quy định tại khoản 2 Điều 169 của Bộ luật Lao động; b) Đủ 20 năm đóng bảo hiểm xã hội trở lên.”.",
+      "textHash": "0xdb05be899bdd4aa4062038f026bf50cb846397d8549c71922f5d95530516f89b",
+      "leaf": "0xc88824c42dcf78c97c2592a8822bac536313b4ba7c89f484e9df0cefd8dda6c0",
+      "proof": [
+        "0xc85c16521b870c827b1b638c761d80e2babd1f56691b7073bfcdd5dcc443b7dc",
+        "0xaa5dfa97926048214a82d38b14c924bc030a747d158b72b6676abcf3e4646c86",
+        "0x695b143e2a720e76bdfcda2a722200b3d7c8d848189d196b4ec8cc460d43f1e5",
+        "0xfd1db5319143a6f2278234e1e48650fa3dffe907b07fb65133fed8a0ef69e6a4",
+        "0x70861b63448814f9200c797fb4120dbcf1c0124f5c39bd9713e5d3f33501d6b2",
+        "0xe365280e143b49c76be84d66206a6c06e9e9213114ce67ecb0af5ed1bafa53c5",
+        "0x1e96b588f72e17829b315ea40d582af82edfb6d06ebdb0c1d015970708e8109d",
+        "0x9acc93e7664713f8e6be33530f2314dff5974b7efcdd1af6a5fa0dbbc457d6d6",
+        "0x4ab8ba6fef69433621fe704c39d1eae2e82f8bd214917abdd95f9be876bfd99c"
+      ],
+      "quote": "Sửa đổi, bổ sung một số điều của Luật Bảo hiểm xã hội số 58/",
+      "quoteHash": "0xfbf6279339ba6bcdcf3381d51f23d9f7a767359451cdee053b883f84b9a442aa"
+    }
+  ],
+  "citationsCases": [
+    {
+      "name": "empty",
+      "citations": [],
+      "citationsHash": "0x569e75fc77c1a856f6daaf9e69d8a9566ca34aa47f9133711ce065a571af0cfd"
+    },
+    {
+      "name": "one-citation-khoan0",
+      "citations": [
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 1,
+          "khoan": 0,
+          "textHash": "0x2c1780f759e78e5e6d7eb17912b2484b7961ca8dd3962730474163160f6ee04d",
+          "quoteHash": "0x8f48213e7024358bcf219aea3fd102788a940676afe0fa71e42b619f2e127a3a"
+        }
+      ],
+      "citationsHash": "0xf6ceda39dfbd374a8e607b0bcbb480e3b2f8f85bae98b96188a7c187b7cf2f69"
+    },
+    {
+      "name": "five-citations",
+      "citations": [
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 1,
+          "khoan": 0,
+          "textHash": "0x2c1780f759e78e5e6d7eb17912b2484b7961ca8dd3962730474163160f6ee04d",
+          "quoteHash": "0x8f48213e7024358bcf219aea3fd102788a940676afe0fa71e42b619f2e127a3a"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 3,
+          "khoan": 0,
+          "textHash": "0x8c1e9534f63ff2b2845a2f06f827f18ea83577eda55d01c6f19a7f344a3f01ea",
+          "quoteHash": "0x8c1e9534f63ff2b2845a2f06f827f18ea83577eda55d01c6f19a7f344a3f01ea"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 3,
+          "khoan": 1,
+          "textHash": "0xeee79223cfbb252884f06091c7e2142caee1607950e17b7f018c1c24003c58cb",
+          "quoteHash": "0x1c87b33b9efd597384e2e5b5eba325ff4db601ee3809d038a2d3e079b703090f"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 35,
+          "khoan": 1,
+          "textHash": "0x90d45a312cb95e53cbf3171fb52d10168dd7decf9706aabb2905bc710f501006",
+          "quoteHash": "0x5f840376de774c90eee57ca155ce909d63c989528f1eff93fe4445e7a3894865"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 219,
+          "khoan": 1,
+          "textHash": "0xdb05be899bdd4aa4062038f026bf50cb846397d8549c71922f5d95530516f89b",
+          "quoteHash": "0xfbf6279339ba6bcdcf3381d51f23d9f7a767359451cdee053b883f84b9a442aa"
+        }
+      ],
+      "citationsHash": "0x6b6bf1f1c2d15844a1e1dd1f0292bacd27b97e168e8ec9f28de09e31103a75e5"
+    },
+    {
+      "name": "five-citations-reversed",
+      "citations": [
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 219,
+          "khoan": 1,
+          "textHash": "0xdb05be899bdd4aa4062038f026bf50cb846397d8549c71922f5d95530516f89b",
+          "quoteHash": "0xfbf6279339ba6bcdcf3381d51f23d9f7a767359451cdee053b883f84b9a442aa"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 35,
+          "khoan": 1,
+          "textHash": "0x90d45a312cb95e53cbf3171fb52d10168dd7decf9706aabb2905bc710f501006",
+          "quoteHash": "0x5f840376de774c90eee57ca155ce909d63c989528f1eff93fe4445e7a3894865"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 3,
+          "khoan": 1,
+          "textHash": "0xeee79223cfbb252884f06091c7e2142caee1607950e17b7f018c1c24003c58cb",
+          "quoteHash": "0x1c87b33b9efd597384e2e5b5eba325ff4db601ee3809d038a2d3e079b703090f"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 3,
+          "khoan": 0,
+          "textHash": "0x8c1e9534f63ff2b2845a2f06f827f18ea83577eda55d01c6f19a7f344a3f01ea",
+          "quoteHash": "0x8c1e9534f63ff2b2845a2f06f827f18ea83577eda55d01c6f19a7f344a3f01ea"
+        },
+        {
+          "lawId": "0x321f4da011e2bfa32fe49ee45c4658dcfbea6f04af940d595d949fe62750bbb6",
+          "dieu": 1,
+          "khoan": 0,
+          "textHash": "0x2c1780f759e78e5e6d7eb17912b2484b7961ca8dd3962730474163160f6ee04d",
+          "quoteHash": "0x8f48213e7024358bcf219aea3fd102788a940676afe0fa71e42b619f2e127a3a"
+        }
+      ],
+      "citationsHash": "0xc95b7054291fed15e257fc4d875e2596333d715447e052cde67a982e41994f3f"
+    }
+  ]
+}
