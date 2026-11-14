@@ -1,0 +1,11 @@
+{
+  "chainId": 43113,
+  "address": "0x869e95576f6dd6f06118cf733b4f307ae37ddce0",
+  "deploymentBlock": 61046807,
+  "deployTx": "0xa990ec3695aeda1707baaf7f9e418cdb9c042236753bc4e0e219b3c9031b6e79",
+  "deployer": "0x07197328b09cc40d6ece53e84413495da20ff008",
+  "token": "0x5425890298aed601595a70AB815c96711a31Bc65",
+  "provider": "0x07197328B09cc40D6ecE53e84413495DA20FF008",
+  "checker": "0x5c6EB80078D8492AeBd65114f7b71aD1F7536AA8",
+  "answerWindow": 600
+}

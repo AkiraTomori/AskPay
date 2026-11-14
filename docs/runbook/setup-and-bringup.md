@@ -25,6 +25,7 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | `askpay-checker` | Chỉ ký verdict | Không cần AVAX |
 | Ví demo (người hỏi) | Hỏi trên web | ~0,5 AVAX + vài USDC Fuji |
 
+- **Thực tế deploy 14/11/2026 (K3):** do thiếu AVAX ở ví riêng, owner và provider dùng chung một ví `0x07197328B09cc40D6ecE53e84413495DA20FF008` (keystore `askpay-main`); checker là `0x5c6EB80078D8492AeBd65114f7b71aD1F7536AA8`. Hợp đồng cho phép owner trùng provider. Muốn tách lại thì owner gọi `setProvider` (một giao dịch).
 - Nhập khoá vào keystore của Foundry: `cast wallet import askpay-owner --interactive`. Khoá không xuất hiện trên dòng lệnh.
 - AVAX Fuji: faucet của Core (`core.app/tools/testnet-faucet`) hoặc faucet trên team1vn.xyz.
 - USDC Fuji: `faucet.circle.com`, chọn Avalanche Fuji.
@@ -66,7 +67,10 @@ npm run corpus                      # → packages/corpus/data/*.json, root.txt
 
 # 2. Contract (CẦN OWNER DUYỆT: broadcast lên Fuji)
 cd contracts
-forge script script/Deploy.s.sol --rpc-url fuji --account askpay-owner --broadcast --verify
+# TOKEN, PROVIDER, CHECKER là địa chỉ công khai (không phải khoá); ANSWER_WINDOW mặc định 600
+TOKEN=0x5425890298aed601595a70AB815c96711a31Bc65 PROVIDER=0x… CHECKER=0x… \
+  forge script script/Deploy.s.sol --rpc-url fuji --chain fuji --account askpay-owner --broadcast --verify
+cd .. && node scripts/record-deployment.mjs && cd contracts   # ghi deployments/fuji.json
 forge script script/RegisterLawRoot.s.sol --rpc-url fuji --account askpay-owner --broadcast
 cd ..
 npm run abi                         # → packages/shared/src/abi, deployments.ts
