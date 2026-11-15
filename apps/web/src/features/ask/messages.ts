@@ -51,14 +51,53 @@ export const askMessages = {
   stepsLabel: 'Tiến trình xử lý',
   stepState: { running: 'đang chạy', done: 'xong', skipped: 'bỏ qua', pending: 'chưa tới' },
   notHeld: 'Chưa giữ tiền',
-  // /questions/[qid] (W2 minimal route, design §8.1; W3 replaces the status line with StatusBadge)
+  // /questions/[qid] (design W3 §10)
   yourQuestion: 'Câu hỏi',
-  statusPending: 'Đang xử lý',
-  statusPaid: 'Đã thanh toán',
-  statusRefunded: 'Đã hoàn tiền',
+  badge: {
+    pending: 'ĐANG XỬ LÝ',
+    paid: 'ĐÃ THANH TOÁN',
+    refunded: 'ĐÃ HOÀN TIỀN',
+    expired: 'QUÁ HẠN',
+  },
+  // Read out by the one polite live region, only when the badge changes.
+  badgeAnnounce: { paid: 'Đã thanh toán', refunded: 'Đã hoàn tiền', expired: 'Quá hạn' },
+  answerHeading: 'Câu trả lời',
+  citationsHeading: 'Căn cứ',
+  txDeposit: 'Giữ tiền',
+  txPaid: 'Thanh toán',
+  txRefund: 'Hoàn tiền',
+  khoanTitle: (dieu: number, khoan: number, title: string) =>
+    khoan > 0 ? `Điều ${dieu} · Khoản ${khoan} — ${title}` : `Điều ${dieu} — ${title}`,
+  // The two lines of the verification mark (Q-10). Always rendered together.
+  verifiedMain: 'Khoản có trong luật đã đăng ký on-chain',
+  verifiedSub: 'Đoạn trích và mức liên quan: checker đã ký',
+  showFullText: 'Xem nguyên văn',
+  quotedPart: 'đoạn được trích',
+  fullTextMissing: 'Chưa tải được nguyên văn Khoản này.',
+  notVerified: 'Chưa đối chiếu được trích dẫn với blockchain.',
+  retrying: 'Đang thử lại…',
+  noBasisTitle: 'Không tìm thấy căn cứ trong Bộ luật Lao động 2019',
+  failedCheckWarning: 'Câu trả lời dưới đây không đạt kiểm tra, đừng dựa vào nó.',
+  // TIMEOUT with an answer: the checker never ran, so "chưa qua kiểm tra", not "không đạt".
+  uncheckedWarning: 'Câu trả lời dưới đây chưa qua kiểm tra, đừng dựa vào nó.',
+  answerFailed: 'Hệ thống không trả lời được lúc này, bạn đã được hoàn tiền.',
+  timeoutRefunded: 'Tiền đã được trả lại vào ví của bạn.',
+  refundedGeneric: 'Đã hoàn tiền vào ví của bạn.',
+  reconnecting: 'Mất kết nối, đang thử lại…',
+  // The page stopped asking (no read is scheduled), so it must not say "retrying".
+  connectionLost: 'Mất kết nối. Thông tin trên trang có thể đã cũ.',
+  settleStalled: 'Chưa nhận được xác nhận chốt từ blockchain.',
+  askAnother: 'Hỏi câu khác',
+  askAgain: 'Hỏi lại',
   statusClaimable: 'Đã quá 10 phút mà chưa có kết quả.',
   notHeldPage: 'Chưa giữ tiền. Bạn chưa bị trừ tiền.',
   notFound: 'Không tìm thấy câu hỏi này.',
   loadFailed: 'Không tải được kết quả.',
   loading: 'Đang tải…',
+  // The tab title: the question on one line, cut to 60 characters (not UTF-16 units).
+  pageTitle: (question: string) => {
+    const chars = Array.from(question.replace(/\s+/gu, ' ').trim());
+    const short = chars.length > 60 ? `${chars.slice(0, 60).join('')}…` : chars.join('');
+    return short === '' ? 'AskPay' : `${short} · AskPay`;
+  },
 } as const;

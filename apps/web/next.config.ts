@@ -11,6 +11,8 @@ if (!apiOrigin) {
 }
 
 const config: NextConfig = {
+  // Browser tests (playwright.config.ts) build into their own folder so they never touch a running `next dev`.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   // The monorepo root holds the lockfile; without this Next guesses the workspace root.
   turbopack: { root: path.resolve(import.meta.dirname, '../..') },
   rewrites: async () => [{ source: '/api/:path*', destination: `${apiOrigin}/api/:path*` }],

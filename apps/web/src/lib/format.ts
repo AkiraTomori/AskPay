@@ -26,3 +26,40 @@ export function shortAddress(address: string, head = 6, tail = 4): string {
 export function snowtraceAddressUrl(address: string): string {
   return `${SNOWTRACE_BASE_URL}/address/${address}`;
 }
+
+// 0xda4c…(64 hex)…baf5 -> 0xda4c…baf5
+export function shortHash(hash: string): string {
+  return shortAddress(hash);
+}
+
+export function snowtraceTxUrl(hash: string): string {
+  return `${SNOWTRACE_BASE_URL}/tx/${hash}`;
+}
+
+const VN_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+function vnParts(ms: number, withYear: boolean): Record<string, string> {
+  const parts = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VN_TIME_ZONE,
+    day: '2-digit',
+    month: '2-digit',
+    ...(withYear && { year: 'numeric', second: '2-digit' }),
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(ms);
+  return Object.fromEntries(parts.map((part) => [part.type, part.value]));
+}
+
+// 1762699400000 (ms since epoch) -> "09/11 21:40", always in Vietnam time. Built from parts because
+// the vi-VN pattern puts the time first.
+export function formatDateTimeVi(ms: number): string {
+  const p = vnParts(ms, false);
+  return `${p.day}/${p.month} ${p.hour}:${p.minute}`;
+}
+
+// The same instant with the year and seconds, for a `title`.
+export function formatDateTimeFullVi(ms: number): string {
+  const p = vnParts(ms, true);
+  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}:${p.second}`;
+}

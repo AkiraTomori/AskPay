@@ -5,6 +5,8 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/.next/**',
+      '**/.next-e2e/**',
+      '**/.playwright/**',
       '**/coverage/**',
       'packages/corpus/raw/**',
       'plugins/**',

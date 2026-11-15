@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useSwitchChain } from 'wagmi';
 import { useConnectDialog } from '@/components/wallet/connect-dialog-context';
@@ -17,7 +18,15 @@ const EXPIRING_SOON_MS = 30_000;
 
 // Wires the parts together. All reasoning about the payment flow lives in `useAsk`.
 export function AskForm() {
-  const [draft, setDraft] = useState('');
+  // "Hỏi lại" on a failed answer comes here as /?q=<question> (W3 U-14). `q` is read once as the
+  // first value of the box, then removed from the address bar.
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [draft, setDraft] = useState(() => searchParams.get('q') ?? '');
+  useEffect(() => {
+    if (searchParams.has('q')) router.replace('/');
+    // Once, on mount: later changes of the URL must not touch what the person is typing.
+  }, []);
   const { state, check, locked, button, notice, ask, pay, retrySend, reset } = useAsk(draft);
   const { openConnectDialog } = useConnectDialog();
   const { mutate: switchChain } = useSwitchChain();

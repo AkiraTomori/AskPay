@@ -61,7 +61,7 @@ Thang cỡ chữ: 12 / 14 / 16 (gốc) / 18 / 24 / 32. Chiều cao dòng 1,6 cho
 | Component | Ở đâu | Mô tả |
 |---|---|---|
 | `Button` | `components/ui` | `primary` (seal), `secondary` (viền), `ghost`; có trạng thái `loading` |
-| `Badge` | `components/ui` | Nền nhạt + chữ đậm cùng tông + icon |
+| `Badge` | `components/ui` | Nền nhạt cùng tông + icon cùng tông + chữ `ink` (chữ cùng tông không đạt AA ở `refund` và `expired`; [W3 §8.1](../design/w3-result.md), U-11) |
 | `Card` | `components/ui` | `surface` + viền `rule` |
 | `Skeleton` | `components/ui` | Khi đang tải |
 | `ConnectButton`, `NetworkGuard` | `components/wallet` | Xem ui-pages §2 |
@@ -80,7 +80,7 @@ Thang cỡ chữ: 12 / 14 / 16 (gốc) / 18 / 24 / 32. Chiều cao dòng 1,6 cho
 | Refunded | ĐÃ HOÀN TIỀN | `refund` | `rotate-ccw` |
 | Quá hạn | QUÁ HẠN | `expired` | `clock-alert` |
 
-Nhãn viết hoa, chữ đậm 12px, có khoảng cách chữ. Bên cạnh badge luôn có số tiền và link tx.
+Nhãn viết hoa, chữ đậm 12px màu `ink`, có khoảng cách chữ; icon và nền nhạt mang tông màu. Bên cạnh badge luôn có số tiền và link tx.
 
 ### 4.2 `StepTimeline`
 

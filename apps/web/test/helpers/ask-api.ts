@@ -93,3 +93,48 @@ export function stubApi(handlers: {
     paymentCalls: () => posts_().filter((c) => c.headers.has('payment-signature')),
   };
 }
+
+const hex = (byte: string) => `0x${byte.repeat(32)}` as const;
+export const DEPOSIT_TX = hex('d1');
+export const SETTLE_TX = hex('5e');
+
+// A citation as the API sends it (citationSchema). `text` has the line breaks of the law; the
+// `quote` is already normalised (one space between words).
+export const citation = (over: Record<string, unknown> = {}) => ({
+  lawId: hex('11'),
+  dieu: 25,
+  khoan: 2,
+  dieuTitle: 'Thời gian thử việc',
+  // Crosses the line break between points a) and b).
+  quote: 'trình độ chuyên môn b) Không quá 30 ngày.',
+  text: 'Thời gian thử việc căn cứ vào tính chất và mức độ phức tạp của công việc nhưng chỉ được thử việc một lần đối với một công việc và bảo đảm điều kiện sau đây:\na) Không quá 60 ngày đối với công việc có chức danh nghề cần trình độ chuyên môn\nb) Không quá 30 ngày.',
+  textHash: hex('22'),
+  quoteHash: hex('33'),
+  verifiedOnChain: true,
+  ...over,
+});
+
+// A closed, paid question: what the API returns once the settlement event was read.
+export const paidBody = (over: Record<string, unknown> = {}) =>
+  resultBody({
+    stage: 'PAID',
+    status: 'PAID',
+    amount: '50000',
+    answer: 'Theo Khoản 2 Điều 25, thời gian thử việc không quá 60 ngày.',
+    noBasis: false,
+    citations: [citation()],
+    tx: { deposit: DEPOSIT_TX, settle: SETTLE_TX },
+    createdAt: Date.UTC(2026, 10, 15, 14, 40), // 21:40 in Vietnam
+    ...over,
+  });
+
+export const refundedBody = (reason: string | null, over: Record<string, unknown> = {}) =>
+  resultBody({
+    stage: 'REFUNDED',
+    status: 'REFUNDED',
+    reason,
+    amount: '50000',
+    tx: { deposit: DEPOSIT_TX, settle: SETTLE_TX },
+    createdAt: Date.UTC(2026, 10, 15, 14, 40),
+    ...over,
+  });

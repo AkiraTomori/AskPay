@@ -110,14 +110,14 @@ Gửi xong thì chuyển sang `/questions/<qid>`.
 
 | `status` / `stage` | Badge | Nội dung |
 |---|---|---|
-| `PENDING` · `DEPOSITING` | ĐANG GIỮ TIỀN (xanh dương) | Timeline bước 1 đang chạy |
+| `PENDING` · `DEPOSITING` | ĐANG XỬ LÝ (xanh dương) | Timeline bước 1 đang chạy |
 | `PENDING` · `ANSWERING` / `CHECKING` / `SETTLING` | ĐANG XỬ LÝ | Timeline theo bước; khung trả lời là skeleton |
 | `PAID` | ĐÃ THANH TOÁN (xanh lá) | Câu trả lời + thẻ trích dẫn có ✓ |
 | `REFUNDED` · `NO_CITATION` | ĐÃ HOÀN TIỀN (hổ phách) | "Không tìm thấy căn cứ trong Bộ luật Lao động 2019" + câu lý do |
-| `REFUNDED` · `INVALID_CITATION` / `CHECKER_REJECTED` | ĐÃ HOÀN TIỀN (hổ phách) | Khung cảnh báo: "Câu trả lời dưới đây **không đạt kiểm tra**, đừng dựa vào nó." Câu trả lời mờ đi; thẻ trích dẫn **không** có ✓ (theo Q-04) |
+| `REFUNDED` · `INVALID_CITATION` / `CHECKER_REJECTED` | ĐÃ HOÀN TIỀN (hổ phách) | Khung cảnh báo: "Câu trả lời dưới đây **không đạt kiểm tra**, đừng dựa vào nó." Câu trả lời chữ `ink-muted` (không dùng `opacity`); thẻ trích dẫn **không** có ✓ (theo Q-04) |
 | `REFUNDED` · `ANSWER_FAILED` | ĐÃ HOÀN TIỀN | "Hệ thống không trả lời được lúc này, bạn đã được hoàn tiền." Nút "Hỏi lại" |
 | `CLAIMABLE` | QUÁ HẠN (xám) | "Đã quá 10 phút mà chưa có kết quả." Nút **Nhận lại tiền** |
-| `REFUNDED` · `TIMEOUT` | ĐÃ HOÀN TIỀN | "Tiền đã được trả lại vào ví của bạn." |
+| `REFUNDED` · `TIMEOUT` | ĐÃ HOÀN TIỀN | "Tiền đã được trả lại vào ví của bạn." Có câu trả lời thì hiện chữ `ink-muted` kèm "Câu trả lời dưới đây **chưa qua kiểm tra**, đừng dựa vào nó." |
 | Lỗi tải trang | — | "Không tải được kết quả." Nút "Thử lại" (khác với không tìm thấy) |
 | Không tìm thấy | — | "Không tìm thấy câu hỏi này." |
 

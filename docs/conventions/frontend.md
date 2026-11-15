@@ -57,7 +57,7 @@ Thêm các trạng thái riêng của ví và giao dịch:
 | Đang chờ ký | "Xác nhận trong ví…" kèm số tiền chính xác |
 | Người dùng từ chối ký | Quay về form, giữ nguyên câu hỏi |
 | Đang xử lý | Các bước: đã giữ tiền → đang trả lời → đang kiểm tra → đang chốt |
-| **Paid** | Câu trả lời, thẻ trích dẫn có dấu "✓ đã xác minh on-chain", link tx |
+| **Paid** | Câu trả lời, thẻ trích dẫn; dấu hai dòng "✓ Khoản có trong luật đã đăng ký on-chain" + "Đoạn trích và mức liên quan: checker đã ký" chỉ khi `verifiedOnChain` (Q-10), link tx |
 | **Refunded** | Lý do hoàn tiền (không trích dẫn / trích dẫn sai / checker từ chối), link tx hoàn tiền |
 | Quá hạn chưa chốt | Nút "Nhận lại tiền" (gọi `claimRefund`) |
 
