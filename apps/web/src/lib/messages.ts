@@ -39,6 +39,7 @@ export const messages = {
   contract: 'Contract',
   lawName: 'Bộ luật Lao động 2019 (45/2019/QH14)',
   navAsk: 'Hỏi',
+  navDashboard: 'Dashboard',
   askTitle: 'Hỏi về Bộ luật Lao động 2019',
   askTagline: 'Trả theo câu. Không qua kiểm tra thì hoàn tiền.',
   notFoundTitle: 'Không tìm thấy trang',

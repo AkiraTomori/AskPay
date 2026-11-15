@@ -1,6 +1,6 @@
 # Coding convention — AskPay
 
-**Trạng thái:** ĐỀ XUẤT (09/11/2026), chờ owner duyệt cùng PR nền móng. Mục tiêu: một người làm 12 ngày vẫn giữ được mã sạch, nhỏ, đọc một module là hiểu trong 5 phút.
+**Trạng thái:** ĐANG ÁP DỤNG (15/11/2026): mã A1–W3 đã được viết và merge theo convention này. Mục tiêu: một người làm 12 ngày vẫn giữ được mã sạch, nhỏ, đọc một module là hiểu trong 5 phút.
 
 - [backend.md](backend.md): `apps/api` (Express + TypeScript)
 - [frontend.md](frontend.md): `apps/web` (Next.js)

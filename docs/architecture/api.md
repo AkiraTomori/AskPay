@@ -2,7 +2,7 @@
 
 > Hình dạng chính xác của request/response là schema zod trong `packages/shared/src/api.ts`. File này mô tả hành vi và ví dụ; **khi lệch nhau, schema trong code thắng** và file này phải sửa trong cùng PR.
 >
-> **Trạng thái:** spec, chưa có code. Quy ước lỗi và lớp code ở [`../conventions/backend.md`](../conventions/backend.md).
+> **Trạng thái:** đã cài đặt A4 đến A6 (xem "Trạng thái triển khai" ở các mục dưới). Quy ước lỗi và lớp code ở [`../conventions/backend.md`](../conventions/backend.md).
 
 ## 1. Quy ước chung
 
@@ -259,7 +259,7 @@ Sắp xếp `createdAt` giảm dần, cùng `createdAt` thì theo `qid` giảm d
 - `eval` đọc từ file `eval/results/latest.json` (AP-09-AC03). Chưa chạy eval, file thiếu hoặc sai định dạng thì `eval: null`.
 - Các số khác tính từ `chain_events` (AP-08-AC02), không đọc bảng `questions`.
 - `questions` là số `qid` có event `Deposited`; `paid` và `refunded` là số `qid` có `Paid` và `Refunded`. `refundRate = refunded / (paid + refunded)`: tỉ lệ trên những câu đã chốt, câu đang xử lý chưa tính. `providerRevenue` là tổng `amount` của các event `Paid` (cộng bằng BigInt). `refundsByReason` luôn có đủ năm lý do, giá trị 0 nếu chưa có.
-- `lastIndexedBlock` là checkpoint của indexer. Số liệu chỉ phủ các block indexer đã đọc: để khớp Snowtrace cho toàn bộ escrow, `SCAN_LOOKBACK_BLOCKS` phải chạm `deploymentBlock` ở lần chạy đầu của một DB mới (system-design §5.6 F).
+- `lastIndexedBlock` là checkpoint của indexer. Số liệu chỉ phủ các block indexer đã đọc: để khớp Snowtrace cho toàn bộ escrow, `SCAN_LOOKBACK_BLOCKS` phải chạm `deploymentBlock` ở lần chạy đầu của một DB mới. Ngoại lệ: DB demo bắt đầu ở block 61067095, nên `/stats` thiếu 7 tx thử đầu tiên và bằng số hàng của `/questions` (system-design §5.6 F).
 
 ## 7. `GET /api/corpus`
 

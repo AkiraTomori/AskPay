@@ -11,6 +11,7 @@
 - [ ] Đã chạy thử 5 câu ở §2; kết quả như kỳ vọng
 - [ ] `DEMO_FAKE_CITATION=true` trên instance demo (chỉ hoạt động với tiền tố `#demo-fake`)
 - [ ] LLM còn quota; thử 1 câu xong trong < 20 giây
+- [ ] `/dashboard`: số ở thẻ "Câu hỏi" bằng số hàng trong bảng (sau khi bấm hết "Xem thêm"). Từ 15/11 hai số khớp (12 = 12): owner chốt bỏ 7 câu thử đầu tiên (block 61047757–61067094, DB không còn nội dung của chúng) khỏi `chain_events` của DB demo, bản sao lưu ở `data/askpay.backup-20261115-181201.sqlite` (gitignore). Hệ quả: `/stats` **không** phủ toàn bộ escrow trên Snowtrace, thiếu 7 tx thử đó. Dựng lại DB thì đặt `SCAN_LOOKBACK_BLOCKS` sao cho quét bắt đầu **sau** block 61067094; chạm `deploymentBlock` sẽ đếm lại 7 câu ấy và hai số lại lệch
 - [ ] Mở sẵn các tab: trang chủ, `/dashboard`, `/verify`, Snowtrace (trang contract)
 - [ ] Có sẵn link của một câu `PAID` và một câu `REFUNDED` từ lần chạy thử (phòng khi mạng chậm)
 - [ ] Hotspot điện thoại làm mạng dự phòng; laptop có bản API chạy local làm dự phòng
@@ -47,4 +48,5 @@ Nếu còn thời gian: tắt server, chờ quá hạn, bấm **"Nhận lại ti
 | RPC chậm | Chờ; nếu treo thì mở link Snowtrace của lần chạy thử đã chuẩn bị |
 | Ví không hiện hộp ký | Kiểm mạng Fuji; tải lại trang; dùng ví dự phòng đã kết nối sẵn |
 | Server API sập | Chuyển sang demo "Nhận lại tiền" (không cần server) và mở trang câu hỏi đã chuẩn bị |
+| Thẻ ghi nhiều câu hơn số hàng (chỉ khi DB bị dựng lại hoặc mất nội dung) | Trả lời thật: "Số ở thẻ đếm từ event on-chain nên đầy đủ. Bảng lấy nội dung câu hỏi từ cơ sở dữ liệu của server, mà nội dung câu hỏi không nằm trên chain. Bảy câu thử đầu tiên không có nội dung trong DB nên không có hàng, nhưng tiền và trạng thái của chúng vẫn tính trong thẻ." Đây là hành vi đã thiết kế ([api.md §5](../architecture/api.md)): khi hai nguồn lệch thì hiển thị theo chain (AP-08-AC02) |
 | Mất mạng hội trường | Hotspot điện thoại; tệ nhất thì chiếu video đã quay |

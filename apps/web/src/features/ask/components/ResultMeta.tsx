@@ -1,8 +1,9 @@
+import { StatusBadge } from '@/components/question/StatusBadge';
+import type { Badge } from '@/components/question/status';
 import { TxLink } from '@/components/ui/TxLink';
 import { formatDateTimeFullVi, formatDateTimeVi, formatUsdcVi } from '@/lib/format';
 import { askMessages } from '../messages';
-import type { Badge, ResultView } from '../result-view';
-import { StatusBadge } from './StatusBadge';
+import type { ResultView } from '../result-view';
 
 type Meta = Extract<ResultView, { kind: 'question' }>['meta'];
 

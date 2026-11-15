@@ -2,7 +2,7 @@
 
 > Hành vi và tiêu chí chấp nhận ở [spec AP-02, AP-03, AP-06, AP-07, AP-08](../spec/askpay-v1.md). Giao diện (màu, chữ, component) bắt buộc theo [`design-system.md`](./design-system.md). Quy tắc code ở [`../conventions/frontend.md`](../conventions/frontend.md).
 >
-> **Trạng thái:** đề xuất, chưa có code.
+> **Trạng thái:** đã cài đặt trang hỏi, kết quả (W1 đến W3) và `/dashboard` (W4, đang làm); `/verify` (W5) chưa. Chi tiết từng slice ở [design/](../design/); khi lệch thì design của slice thắng.
 
 ## 1. Sơ đồ trang
 
@@ -135,10 +135,10 @@ Gửi xong thì chuyển sang `/questions/<qid>`.
 
 ```
 ┌───────────┬───────────┬───────────┬───────────┐
-│ 42 câu    │ 31 đã trả │ 11 hoàn   │ 1,55 USDC │  StatCard ×4
-│           │           │ 26,2%     │ doanh thu │
+│ 42 câu    │ 31 đã trả │ 11 hoàn   │ 1,55 USDC │  StatTiles ×4
+│           │           │ 26,2%     │ Provider đã nhận │
 ├───────────┴───────────┴───────────┴───────────┤
-│ Lý do hoàn tiền: NO_CITATION 6 · CHECKER 3 …  │  RefundReasonBar
+│ Lý do hoàn tiền: NO_CITATION 6 · CHECKER 3 …  │  RefundReasonList
 ├───────────────────────────────────────────────┤
 │ Chất lượng (eval 18/11, commit abc1234)        │
 │ Trích đúng Khoản 82% · Đạt checker 78% · …     │  EvalPanel
@@ -149,6 +149,7 @@ Gửi xong thì chuyển sang `/questions/<qid>`.
 └───────────────────────────────────────────────┘
 ```
 
+- Thiết kế chi tiết, trạng thái và chuỗi giao diện: [design/w4-dashboard.md](../design/w4-dashboard.md) (đã duyệt 15/11/2026). Sơ đồ trên chỉ để phác bố cục.
 - Nguồn: `GET /stats`, `GET /questions`.
 - Ghi chú nhỏ dưới thẻ số liệu: "Tính từ event on-chain, khối #38123456."
 - Rỗng: "Chưa có câu hỏi nào. [Hỏi câu đầu tiên]". Chưa chạy eval thì ẩn `EvalPanel`.

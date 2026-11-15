@@ -14,6 +14,8 @@ vi.mock('next/font/google', () => {
 
 const { default: RootLayout } = await import('@/app/layout');
 const { default: AskPage } = await import('@/app/page');
+const { default: DashboardPage, metadata: dashboardMetadata } =
+  await import('@/app/dashboard/page');
 const { default: NotFound } = await import('@/app/not-found');
 const { default: ErrorPage } = await import('@/app/error');
 const { default: GlobalError } = await import('@/app/global-error');
@@ -24,9 +26,16 @@ function expectSingleDisclaimer(html: string) {
   expect(html.split(messages.disclaimer)).toHaveLength(2);
 }
 
+describe('/dashboard route', () => {
+  it('W4: the tab title is "Dashboard · AskPay"', () => {
+    expect(dashboardMetadata.title).toBe('Dashboard · AskPay');
+  });
+});
+
 describe('root layout (server render)', () => {
   it.each([
     ['/', <AskPage key="p" />],
+    ['/dashboard', <DashboardPage key="d" />],
     ['a route that does not exist', <NotFound key="n" />],
     ['an error page', <ErrorPage key="e" error={new Error('boom')} reset={noop} />],
   ])('AP-07-AC04 W1-E01: shows the disclaimer on %s', (_route, page) => {

@@ -9,6 +9,9 @@ export const FUJI_CHAIN_ID = fujiDeployment.chainId;
 export const RPC_URL =
   process.env.NEXT_PUBLIC_RPC_URL ?? 'https://avalanche-fuji-c-chain-rpc.publicnode.com';
 
+// The repo is public at submission (W4 U-18), so a commit link is safe to show.
+export const REPO_URL = 'https://github.com/AkiraTomori/AskPay';
+
 export const SNOWTRACE_BASE_URL = 'https://testnet.snowtrace.io';
 export const FAUCET_URL = 'https://faucet.circle.com';
 export const CORE_INSTALL_URL = 'https://core.app/';

@@ -1,3 +1,5 @@
+import { BADGE_LABELS } from '@/components/question/status';
+
 // Every user-facing string of the ask feature (design W2 §11). Vietnamese only in the MVP.
 // Sentences for API error codes come from ERROR_CODES in @askpay/shared, not from here.
 export const askMessages = {
@@ -53,12 +55,7 @@ export const askMessages = {
   notHeld: 'Chưa giữ tiền',
   // /questions/[qid] (design W3 §10)
   yourQuestion: 'Câu hỏi',
-  badge: {
-    pending: 'ĐANG XỬ LÝ',
-    paid: 'ĐÃ THANH TOÁN',
-    refunded: 'ĐÃ HOÀN TIỀN',
-    expired: 'QUÁ HẠN',
-  },
+  badge: BADGE_LABELS,
   // Read out by the one polite live region, only when the badge changes.
   badgeAnnounce: { paid: 'Đã thanh toán', refunded: 'Đã hoàn tiền', expired: 'Quá hạn' },
   answerHeading: 'Câu trả lời',

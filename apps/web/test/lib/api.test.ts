@@ -20,6 +20,13 @@ describe('lib/api: reads the three response shapes of apps/api', () => {
     expect(await get()).toMatchObject({ kind: 'data', status: 200, data: { qid: QID } });
   });
 
+  it('passes `meta` (the page cursor of GET /api/questions) through, and omits it when absent', async () => {
+    stubApi({ post: [], get: () => json({ data: resultBody(), meta: { nextCursor: 'c1' } }) });
+    expect(await get()).toMatchObject({ kind: 'data', meta: { nextCursor: 'c1' } });
+    stubApi({ post: [], get: () => json({ data: resultBody() }) });
+    expect(await get()).not.toHaveProperty('meta');
+  });
+
   it('tells the bare 402 quote apart from a 402 PAYMENT_INVALID error', async () => {
     stubApi({ post: [], get: () => quoteResponse() });
     expect(await get()).toMatchObject({ kind: 'paymentRequired' });
