@@ -23,46 +23,143 @@ import {
   type SignedPayment,
 } from './payment';
 import { checkQuestion } from './question';
+import { hasUnverifiedCitation, isSettled } from './result-view';
 import { classifySubmit } from './submit-outcome';
 
 // --- Polling a question (shared with the result page, W3) -------------------------------------
 
 class NotFoundError extends Error {}
 
-const FINAL_STATUSES = new Set(['PAID', 'REFUNDED', 'CLAIMABLE']);
+// Design W3 §7: a PAID card the server could not match to the chain is asked again after these
+// delays (3, 6, 12, 24 s), then the page stops and keeps its "not verified yet" line.
+const VERIFY_RETRY_MS = [3000, 6000, 12000, 24000];
+// A closed status without the settlement tx is read every second, at most this many times (about
+// 30 s). Past that the page stops and offers a manual retry, so a tab never polls for ever.
+const SETTLE_POLL_MS = 1000;
+export const SETTLE_POLL_LIMIT = 30;
+const CLAIMABLE_POLL_MS = 10_000;
+
+export type PollContext = {
+  // Reads so far that were settled PAID with an unmatched card.
+  unverifiedReads: number;
+  // Reads so far that were PAID/REFUNDED but without the settlement tx.
+  unsettledReads: number;
+  hidden: boolean;
+};
+
+// How long until the next read, false to stop, undefined to leave the W2 cadence to the caller.
+export function nextPollDelay(
+  data: QuestionResult | undefined,
+  { unverifiedReads, unsettledReads, hidden }: PollContext,
+): number | false | undefined {
+  if (!data) return undefined;
+  if (data.stage === 'EXPIRED') return false;
+  if (data.status === 'CLAIMABLE') {
+    // `settle` can still run after the deadline, so CLAIMABLE may become PAID or REFUNDED. Slow
+    // poll, and none in a background tab (the focus refetch restarts it).
+    return hidden ? false : CLAIMABLE_POLL_MS;
+  }
+  if (data.status === 'PAID' || data.status === 'REFUNDED') {
+    // Closed status without the settlement tx is not "settled" yet (isSettled): keep reading, but
+    // only for a bounded number of reads.
+    if (!isSettled(data)) return unsettledReads <= SETTLE_POLL_LIMIT ? SETTLE_POLL_MS : false;
+    if (hasUnverifiedCitation(data)) return VERIFY_RETRY_MS[unverifiedReads - 1] ?? false;
+    return false;
+  }
+  return undefined;
+}
+
+type PollInput = {
+  data: QuestionResult | undefined;
+  notFound: boolean;
+  backoff: boolean;
+  dataUpdateCount: number;
+} & PollContext;
+
+// The one rule for "is another read scheduled, and when" (used by refetchInterval and by the view).
+function pollInterval({ data, notFound, backoff, dataUpdateCount, ...context }: PollInput) {
+  // The result page stops on a 404; while a payment is unsure a 404 proves nothing, keep going.
+  if (!backoff && notFound) return false;
+  const delay = nextPollDelay(data, context);
+  if (delay !== undefined) return delay;
+  // T-07: every second; after ~30 answers, every 3 s (used while the outcome is unsure).
+  return backoff && dataUpdateCount >= 30 ? 3000 : 1000;
+}
 
 export function useQuestionProgress(qid: string | undefined, options: { backoff?: boolean } = {}) {
+  const backoff = options.backoff ?? false;
+  // Read counters, in a ref for refetchInterval (sync) and in state for rendering (a read with
+  // identical data does not re-render by itself). They start again on a page reload or a retry.
+  const reads = useRef({ unverified: 0, unsettled: 0 });
+  const [readCounts, setReadCounts] = useState({ unverified: 0, unsettled: 0 });
   const query = useQuery({
     queryKey: ['question', qid],
     enabled: qid !== undefined,
     retry: false,
     // Keep polling in a background tab: the wallet popup can take focus away from this one.
     refetchIntervalInBackground: true,
-    refetchInterval: (q) => {
-      const data = q.state.data;
-      // The result page stops on a 404; while a payment is unsure a 404 proves nothing, keep going.
-      if (!options.backoff && q.state.error instanceof NotFoundError) return false;
-      if (data && ((data.status && FINAL_STATUSES.has(data.status)) || data.stage === 'EXPIRED')) {
-        return false;
-      }
-      // T-07: every second; after ~30 answers, every 3 s (used while the outcome is unsure).
-      return options.backoff && q.state.dataUpdateCount >= 30 ? 3000 : 1000;
-    },
+    refetchInterval: (q) =>
+      pollInterval({
+        data: q.state.data,
+        notFound: q.state.error instanceof NotFoundError,
+        backoff,
+        dataUpdateCount: q.state.dataUpdateCount,
+        unverifiedReads: reads.current.unverified,
+        unsettledReads: reads.current.unsettled,
+        hidden: typeof document !== 'undefined' && document.visibilityState === 'hidden',
+      }),
     queryFn: async (): Promise<QuestionResult> => {
       const result = await getQuestion(qid as string);
-      if (result.kind === 'data') return result.data;
+      if (result.kind === 'data') {
+        const closed = result.data.status === 'PAID' || result.data.status === 'REFUNDED';
+        if (hasUnverifiedCitation(result.data)) reads.current.unverified += 1;
+        else if (closed && !isSettled(result.data)) reads.current.unsettled += 1;
+        else return result.data;
+        setReadCounts({ ...reads.current });
+        return result.data;
+      }
       if (result.kind === 'error' && result.code === 'QUESTION_NOT_FOUND')
         throw new NotFoundError();
       throw new Error('Could not load the question');
     },
   });
+
+  const notFound = query.error instanceof NotFoundError;
+  // Would another read happen? A hidden tab counts as yes: the focus refetch resumes it.
+  const polling =
+    pollInterval({
+      data: query.data,
+      notFound,
+      backoff,
+      // Only the 3 s step of the payment flow (`backoff`) uses this; the view needs `polling` on
+      // the result page alone.
+      dataUpdateCount: 0,
+      unverifiedReads: readCounts.unverified,
+      unsettledReads: readCounts.unsettled,
+      hidden: false,
+    }) !== false;
+  const { refetch } = query;
+  // A manual retry gives the page its allowance of reads back.
+  const retry = useCallback(async () => {
+    reads.current = { unverified: 0, unsettled: 0 };
+    setReadCounts({ unverified: 0, unsettled: 0 });
+    await refetch();
+  }, [refetch]);
+
   return {
     question: query.data,
-    notFound: query.error instanceof NotFoundError,
-    // A failed refresh keeps the last data on screen; `loadFailed` is for the case with none.
-    loadFailed: query.isError && !(query.error instanceof NotFoundError),
+    notFound,
+    // A failed refresh keeps the last data on screen; the view tells "no data" from "stale data".
+    loadFailed: query.isError && !notFound,
     isLoading: query.isLoading,
-    refetch: query.refetch,
+    polling,
+    // True while a PAID card is still being matched to the chain and more reads are scheduled.
+    verifyRetrying:
+      query.data !== undefined &&
+      hasUnverifiedCitation(query.data) &&
+      readCounts.unverified <= VERIFY_RETRY_MS.length,
+    refetch,
+    retry,
   };
 }
 

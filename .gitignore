@@ -12,6 +12,8 @@ coverage/
 
 # Next.js
 **/.next/
+**/.next-e2e/
+**/.playwright/
 **/next-env.d.ts
 **/*.tsbuildinfo
 

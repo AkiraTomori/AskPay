@@ -115,8 +115,11 @@ describe('ask form: price before wallet', () => {
 
 describe('ask form: signing and sending', () => {
   it('AP-03-AC01 W2-E04: signs, sends PAYMENT-SIGNATURE, goes to the question page and refreshes the balance', async () => {
+    // Frozen once: `quoteBody()` defaults to "now + 300 s", so calling it again for the assertion
+    // could land in the next second and differ from the quote the server "sent".
+    const validBefore = Math.floor(Date.now() / 1000) + 300;
     const { stub, clickButton } = await openAsk({
-      api: { post: [() => quoteResponse(), () => settled()] },
+      api: { post: [() => quoteResponse({ validBefore }), () => settled()] },
     });
     await clickButton(ask());
     await clickButton(payName);
@@ -130,7 +133,8 @@ describe('ask form: signing and sending', () => {
       nonce: QID,
     });
     expect(payload?.payload.authorization.to).toBe(payload?.accepted.payTo);
-    expect(payload?.accepted).toEqual(quoteBody().accepts[0] && { ...quoteBody().accepts[0] });
+    expect(payload?.accepted).toEqual(quoteBody({ validBefore }).accepts[0]);
+    expect(payload?.payload.authorization.validBefore).toBe(String(validBefore));
     expect(signing.requests).toHaveLength(1);
     expect(must(signing.requests[0]).account.toLowerCase()).toBe(ACCOUNT_A.toLowerCase());
     // 1 read at connect, more after the payment: the balance query was invalidated.

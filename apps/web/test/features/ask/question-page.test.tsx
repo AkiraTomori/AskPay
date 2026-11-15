@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Providers } from '@/app/providers';
-import { QuestionProgressView } from '@/features/ask/components/QuestionProgressView';
+import { ResultView } from '@/features/ask/components/ResultView';
 import { askMessages } from '@/features/ask/messages';
 import { QID, QUESTION, errorResponse, json, resultBody, stubApi } from '../../helpers/ask-api';
 import { createTestConfig } from '../../helpers/wallet-harness';
@@ -13,19 +13,19 @@ function renderPage(get: () => Response | Promise<Response>) {
   stubApi({ post: [], get });
   return render(
     <Providers config={createTestConfig()}>
-      <QuestionProgressView qid={QID} />
+      <ResultView qid={QID} />
     </Providers>,
   );
 }
 
 const stepTexts = () => screen.getAllByRole('listitem').map((item) => item.textContent ?? '');
 
-describe('/questions/[qid] (minimal, W2)', () => {
+describe('/questions/[qid] progress (W2, kept under W3)', () => {
   it('W2-E21: a question that holds no money says so, and never says "Đã thanh toán"', async () => {
     renderPage(() => json({ data: resultBody({ stage: 'QUOTED' }) }));
     expect(await screen.findByText(askMessages.notHeldPage)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Về trang Hỏi' })).toHaveAttribute('href', '/');
-    expect(screen.queryByText(askMessages.statusPaid)).not.toBeInTheDocument();
+    expect(screen.queryByText(askMessages.badge.paid)).not.toBeInTheDocument();
   });
 
   it('shows the same message for EXPIRED', async () => {
@@ -46,7 +46,7 @@ describe('/questions/[qid] (minimal, W2)', () => {
     expect(await screen.findByText(askMessages.loadFailed)).toBeInTheDocument();
     expect(screen.queryByText(askMessages.notFound)).not.toBeInTheDocument();
     await userEvent.setup().click(screen.getByRole('button', { name: askMessages.retry }));
-    expect(await screen.findByText(askMessages.statusPending)).toBeInTheDocument();
+    expect(await screen.findByText(askMessages.badge.pending)).toBeInTheDocument();
     answers = [];
   });
 
@@ -82,10 +82,10 @@ describe('/questions/[qid] (minimal, W2)', () => {
     await waitFor(() => expect(stepTexts()[3]).toContain('Chốt (đang chạy)'));
     await next();
     await waitFor(() => expect(stepTexts()[3]).toContain('Chốt (đang chạy)'));
-    expect(screen.queryByText(askMessages.statusPaid)).not.toBeInTheDocument();
+    expect(screen.queryByText(askMessages.badge.paid)).not.toBeInTheDocument();
     await next();
     await waitFor(() => expect(stepTexts()[3]).toContain('Chốt (xong)'));
-    expect(screen.getByText(askMessages.statusPaid)).toBeInTheDocument();
+    expect(screen.getByText(askMessages.badge.paid)).toBeInTheDocument();
     expect(screen.queryByText(/đã xác minh/i)).not.toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe('/questions/[qid] (minimal, W2)', () => {
         }),
       }),
     );
-    expect(await screen.findByText(askMessages.statusRefunded)).toBeInTheDocument();
+    expect(await screen.findByText(askMessages.badge.refunded)).toBeInTheDocument();
     expect(stepTexts()[1]).toContain('bỏ qua');
     expect(stepTexts()[2]).toContain('bỏ qua');
   });
