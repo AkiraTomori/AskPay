@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Hex } from 'viem';
 import { useSignTypedData } from 'wagmi';
+import { isSettled } from '@/components/question/status';
 import { useUsdcBalance } from '@/components/wallet/use-usdc-balance';
 import { useWalletStatus } from '@/components/wallet/use-wallet-status';
 import { FUJI_CHAIN_ID } from '@/lib/constants';
@@ -23,7 +24,7 @@ import {
   type SignedPayment,
 } from './payment';
 import { checkQuestion } from './question';
-import { hasUnverifiedCitation, isSettled } from './result-view';
+import { hasUnverifiedCitation } from './result-view';
 import { classifySubmit } from './submit-outcome';
 
 // --- Polling a question (shared with the result page, W3) -------------------------------------

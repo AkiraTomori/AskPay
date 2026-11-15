@@ -39,4 +39,4 @@ Phát hiện lệch thì **dừng và báo owner** ([AGENTS.md](../AGENTS.md)), 
 
 ## Trạng thái
 
-Giai đoạn **thiết kế** (09/11/2026): chưa scaffold code. Mọi file ở trạng thái ĐỀ XUẤT, chờ owner duyệt. Khi code xong từng phần, cập nhật lệnh trong `runbook/` cho khớp thực tế.
+Giai đoạn **cài đặt** (15/11/2026): đã có mã cho contract (đã deploy Fuji), `packages/shared`, `packages/corpus`, `apps/api` (A1–A6) và `apps/web` (W1–W3); W4 đang làm, W5 và phần còn lại ở [`runbook/tasks.csv`](./runbook/tasks.csv). Spec, kiến trúc và convention **đang áp dụng**: owner đã chốt Q-01…Q-13 (trừ Q-08, hoãn tới 18/11) và duyệt từng slice. Thiết kế chi tiết từng slice web ở [`design/`](./design/). Khi code xong từng phần, cập nhật lệnh trong `runbook/` cho khớp thực tế.

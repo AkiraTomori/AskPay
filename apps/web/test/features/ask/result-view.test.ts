@@ -1,11 +1,7 @@
 import { questionResultSchema, type QuestionResult } from '@askpay/shared/api';
 import { describe, expect, it } from 'vitest';
-import {
-  hasUnverifiedCitation,
-  isSettled,
-  toResultView,
-  type ResultView,
-} from '@/features/ask/result-view';
+import { isSettled } from '@/components/question/status';
+import { hasUnverifiedCitation, toResultView, type ResultView } from '@/features/ask/result-view';
 import { citation, paidBody, refundedBody, resultBody, SETTLE_TX } from '../../helpers/ask-api';
 
 const parse = (body: Record<string, unknown>): QuestionResult => questionResultSchema.parse(body);

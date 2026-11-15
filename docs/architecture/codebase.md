@@ -2,7 +2,7 @@
 
 > File này mô tả cây thư mục, ranh giới module và luồng phụ thuộc. **Cách viết code** (đặt tên, lỗi, test) nằm ở [`../conventions/`](../conventions/README.md). Lý do của từng lựa chọn công nghệ nằm ở [`system-design.md` §3](./system-design.md#3-quyết-định-công-nghệ-và-đánh-đổi).
 >
-> **Trạng thái:** đề xuất, chưa scaffold.
+> **Trạng thái:** đang áp dụng (15/11/2026). Đã scaffold `contracts/`, `packages/shared`, `packages/corpus`, `apps/api` và `apps/web`; `apps/agent` (tuỳ chọn) và `eval/` chưa có.
 
 ## 1. Tóm tắt quyết định
 
@@ -39,8 +39,8 @@ askpay/
 │   ├── web/
 │   │   └── src/
 │   │       ├── app/             page.tsx · questions/[qid]/page.tsx · dashboard/page.tsx · verify/page.tsx
-│   │       ├── features/        ask/ · question/ · dashboard/ · verify/
-│   │       ├── components/      ui/ · layout/ · wallet/
+│   │       ├── features/        ask/ (gồm trang kết quả) · dashboard/ · verify/
+│   │       ├── components/      ui/ · layout/ · question/ (badge, isSettled dùng chung) · wallet/
 │   │       └── lib/             api.ts · wagmi.ts · format.ts · x402.ts
 │   └── agent/                   (tuỳ chọn, AP-10) src/index.ts
 ├── packages/

@@ -2,7 +2,7 @@
 
 > Đặc tả Solidity cho `AskPayEscrow`. **Đây là nguồn duy nhất cho chữ ký hàm, error và event.** Đổi chữ ký hàm thì sửa file này trước, chạy `npm run abi` để sinh lại ABI vào `packages/shared`, rồi sửa mọi chỗ TypeScript báo lỗi.
 >
-> **Trạng thái:** spec, chưa có code. Các mục đánh dấu ❓ cần chốt khi làm slice contract (11/11). Quy tắc viết code ở [`../conventions/contracts.md`](../conventions/contracts.md).
+> **Trạng thái:** đã cài đặt và deploy lên Fuji (K1 đến K3, địa chỉ ở `contracts/deployments/fuji.json`). Các mục đánh dấu ❓ là ghi chú từ lúc thiết kế; khi cần, đối chiếu với `contracts/src` (mã là bản chạy thật). Quy tắc viết code ở [`../conventions/contracts.md`](../conventions/contracts.md).
 
 ---
 

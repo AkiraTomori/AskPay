@@ -5,7 +5,8 @@ import { paymentRequiredSchema, type PaymentRequired } from '@askpay/shared/x402
 // The one API client (frontend convention §2). Same origin: Next rewrites /api/* to apps/api.
 // Components and hooks never call fetch; they read this tagged result instead of catching.
 export type ApiResult<T> =
-  | { kind: 'data'; status: 200 | 202; data: T; headers: Headers }
+  // `meta` is the envelope's sibling of `data` (GET /api/questions: `{ nextCursor }`); unparsed.
+  | { kind: 'data'; status: 200 | 202; data: T; meta?: unknown; headers: Headers }
   // 402 quote: the bare x402 JSON, not wrapped in an envelope. A 402 PAYMENT_INVALID is an `error`.
   | { kind: 'paymentRequired'; body: PaymentRequired; headers: Headers }
   | { kind: 'error'; status: number; code: ErrorCode; message: string; details?: unknown }
@@ -66,12 +67,17 @@ function interpret<T>(response: Response, json: unknown, schema: Schema<T>): Api
     if (quote.success) return { kind: 'paymentRequired', body: quote.data, headers };
   }
   if (status === 200 || status === 202) {
-    const data =
-      typeof json === 'object' && json !== null
-        ? schema.safeParse((json as { data?: unknown }).data)
-        : undefined;
+    const envelope =
+      typeof json === 'object' && json !== null ? (json as Record<string, unknown>) : undefined;
+    const data = envelope ? schema.safeParse(envelope.data) : undefined;
     return data?.success
-      ? { kind: 'data', status, data: data.data, headers }
+      ? {
+          kind: 'data',
+          status,
+          data: data.data,
+          ...(envelope?.meta !== undefined && { meta: envelope.meta }),
+          headers,
+        }
       : { kind: 'malformed', status };
   }
   const envelope = errorEnvelopeSchema.safeParse(json);

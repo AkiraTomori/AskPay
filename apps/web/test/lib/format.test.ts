@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   formatDateTimeFullVi,
   formatDateTimeVi,
+  formatIntegerVi,
+  formatPercentVi,
   formatUsdcVi,
   formatVndEstimate,
   shortAddress,
@@ -69,5 +71,30 @@ describe('transaction links and Vietnam time (design W3 §8)', () => {
 
   it('formatDateTimeFullVi adds the year and seconds', () => {
     expect(formatDateTimeFullVi(Date.UTC(2026, 10, 15, 14, 40, 9))).toBe('15/11/2026 21:40:09');
+  });
+});
+
+describe('formatIntegerVi', () => {
+  it.each([
+    [0, '0'],
+    [999, '999'],
+    [1284, '1.284'],
+    [38123456, '38.123.456'],
+  ])('%s -> %s', (n, text) => {
+    expect(formatIntegerVi(n)).toBe(text);
+  });
+});
+
+describe('formatPercentVi: one decimal at most, a trailing ",0" dropped', () => {
+  it.each([
+    [0.262, '26,2%'],
+    [0.82, '82%'],
+    [0.9, '90%'],
+    [1, '100%'],
+    [0, '0%'],
+    [0.0004, '0%'],
+    [0.2625, '26,3%'],
+  ])('%s -> %s', (ratio, text) => {
+    expect(formatPercentVi(ratio)).toBe(text);
   });
 });

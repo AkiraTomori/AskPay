@@ -1,7 +1,6 @@
 import { BadgeCheck, ClockAlert, LoaderCircle, RotateCcw, type LucideIcon } from 'lucide-react';
 import { Badge, type Tone } from '@/components/ui/Badge';
-import { askMessages } from '../messages';
-import type { Badge as BadgeKind } from '../result-view';
+import { BADGE_LABELS, type Badge as BadgeKind } from './status';
 
 const BADGES: Record<BadgeKind, { tone: Tone; icon: LucideIcon }> = {
   pending: { tone: 'pending', icon: LoaderCircle },
@@ -10,12 +9,12 @@ const BADGES: Record<BadgeKind, { tone: Tone; icon: LucideIcon }> = {
   expired: { tone: 'expired', icon: ClockAlert },
 };
 
-// Wording comes from the badge, which result-view derives from `status` + `tx.settle` (P2).
+// Wording comes from the badge, which `badgeOf` / result-view derive from `status` + `tx.settle` (P2).
 export function StatusBadge({ badge }: { badge: BadgeKind }) {
   const { tone, icon } = BADGES[badge];
   return (
     <Badge tone={tone} icon={icon} spin={badge === 'pending'}>
-      {askMessages.badge[badge]}
+      {BADGE_LABELS[badge]}
     </Badge>
   );
 }

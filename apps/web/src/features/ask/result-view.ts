@@ -1,19 +1,12 @@
 import type { QuestionResult } from '@askpay/shared/api';
 import type { RefundReasonCode } from '@askpay/shared/errors';
 import type { Citation } from '@askpay/shared/api';
+import { badgeOf, isSettled, type Badge } from '@/components/question/status';
 import type { StepsInput } from './steps';
 
 // A pure description of the /questions/[qid] screen (design W3 §3, §4). Components only draw it.
 // Every "paid / refunded / verified" word on the page is derived here from `status` + `tx.settle`
 // (the chain's event), never from `stage` (P2, AP-07-AC03).
-
-// "Settled" is defined once: a closed status AND the settlement tx. StatusBadge, the timeline's
-// last step and the poll stop condition all call this.
-export function isSettled(result: QuestionResult): boolean {
-  return (
-    (result.status === 'PAID' || result.status === 'REFUNDED') && result.tx?.settle !== undefined
-  );
-}
 
 // A settled PAID question with a card the server could not match to the chain (api.md §3.2).
 export function hasUnverifiedCitation(result: QuestionResult): boolean {
@@ -23,8 +16,6 @@ export function hasUnverifiedCitation(result: QuestionResult): boolean {
     (result.citations ?? []).some((citation) => !citation.verifiedOnChain)
   );
 }
-
-export type Badge = 'pending' | 'paid' | 'refunded' | 'expired';
 
 export type NoticeView =
   | { kind: 'noBasis'; warnsAnswer: boolean }
@@ -95,6 +86,8 @@ export function toResultView({ result, notFound, loadFailed, polling }: ResultIn
   }
 
   const settled = isSettled(result);
+  // The same rule as the dashboard rows (W4 U-16): one place decides the badge.
+  const badge = badgeOf({ status, settleTx: result.tx?.settle });
   const closed = status === 'PAID' || status === 'REFUNDED';
   const refresh: Refresh = loadFailed
     ? polling
@@ -120,7 +113,7 @@ export function toResultView({ result, notFound, loadFailed, polling }: ResultIn
   if (status === 'CLAIMABLE') {
     return {
       ...base,
-      badge: 'expired',
+      badge,
       timeline: undefined,
       settled: false,
       notice: { kind: 'claimable' },
@@ -134,7 +127,7 @@ export function toResultView({ result, notFound, loadFailed, polling }: ResultIn
   if (!settled) {
     return {
       ...base,
-      badge: 'pending',
+      badge,
       timeline: { stage, ...(status && { status }), settleTx: result.tx?.settle },
       settled: false,
       answer: { skeleton: true },
@@ -157,7 +150,7 @@ export function toResultView({ result, notFound, loadFailed, polling }: ResultIn
   if (status === 'PAID') {
     return {
       ...base,
-      badge: 'paid',
+      badge,
       timeline,
       settled: true,
       ...(answer && { answer }),
@@ -176,7 +169,7 @@ export function toResultView({ result, notFound, loadFailed, polling }: ResultIn
   const hasAnswer = answerText !== undefined;
   const refunded = {
     ...base,
-    badge: 'refunded' as const,
+    badge,
     timeline,
     settled: true,
     verifying: false,

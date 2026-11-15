@@ -1,10 +1,10 @@
 # AskPay v1 — Đặc tả sản phẩm
 
-**Trạng thái:** BẢN NHÁP (09/11/2026), chờ owner duyệt. Các quyết định mở ở §6. Khi owner chốt, cập nhật bảng ở đó và đổi trạng thái file này thành ĐÃ DUYỆT.
+**Trạng thái:** ĐANG ÁP DỤNG (15/11/2026). Owner đã chốt Q-01…Q-13 ở §6 (trừ Q-08, hoãn tới 18/11) và duyệt từng slice; mã A1–W3 đã được viết và merge theo spec này. Đổi hành vi thì ghi quyết định vào đây (`/sdlc:sign-off`).
 
 **Quy ước trong file này:**
 - **Đã chốt:** owner đã đồng ý trong trao đổi ngày 09/11/2026 (đề AskPay, stack, làm một mình, kiến trúc escrow + Merkle).
-- **Đề xuất:** các phần còn lại, chưa ai chốt.
+- **Đề xuất:** phần chưa có dòng chốt của owner ở §6 hoặc dòng duyệt slice.
 - Tiêu chí chấp nhận ghi theo dạng *Cho / Khi / Thì*, mã `AP-xx-ACnn`. Mỗi tiêu chí phải có ít nhất một test (Vitest hoặc Foundry) hoặc một bước trong kịch bản demo (§7).
 
 ## 1. Vấn đề và kết quả mong muốn
@@ -133,6 +133,7 @@ Một câu trả lời **đạt** khi thoả cả ba điều kiện:
   - Tổng tiền provider đã nhận.
   - Danh sách câu hỏi gần nhất, mỗi câu kèm link tx.
 - **AP-08-AC02** · Số liệu tiền và trạng thái lấy từ event on-chain. Nếu dữ liệu lưu ở server lệch với chain thì hiển thị theo chain.
+- **Duyệt cho slice W4 (owner, 15/11/2026):** owner duyệt AP-08-AC01 và AP-08-AC02 như viết ở trên làm căn cứ cho ticket W4. Không đổi hành vi. Bố cục và nguồn dữ liệu tham khảo [ui-pages §5](../product/ui-pages.md) (`GET /stats`, `GET /questions`). Thiết kế chi tiết (trạng thái rỗng, lỗi tải, "Xem thêm") ở [docs/design/w4-dashboard.md](../design/w4-dashboard.md), đã duyệt 15/11/2026.
 
 ### AP-09 Bộ đánh giá (eval)
 

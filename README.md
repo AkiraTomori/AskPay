@@ -49,7 +49,7 @@ flowchart LR
 | `docs` | Tài liệu thiết kế, viết bằng tiếng Việt |
 | `plugins/sdlc` | Skill quy trình cho coding agent |
 
-**Trạng thái:** đang thiết kế, chưa có mã. Cách dựng môi trường: [`docs/runbook/setup-and-bringup.md`](docs/runbook/setup-and-bringup.md).
+**Trạng thái:** đang cài đặt (15/11/2026): đã có contract trên Fuji, `apps/api` và `apps/web` (W1–W3); W4 đang làm. Cách dựng môi trường: [`docs/runbook/setup-and-bringup.md`](docs/runbook/setup-and-bringup.md).
 
 ## Đọc tiếp
 

@@ -26,11 +26,11 @@ describe('app shell', () => {
     expect(before(disclaimer, footer)).toBe(true);
   });
 
-  it('marks the current page in the nav; W1 has only "Hỏi"', () => {
+  it('marks the current page in the nav: "Hỏi" is current on /', () => {
     renderShell(createTestConfig());
     const nav = screen.getByRole('navigation', { name: messages.mainNav });
     const links = within(nav).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual([messages.navAsk]);
+    expect(links.map((link) => link.textContent)).toEqual([messages.navAsk, messages.navDashboard]);
     expect(links[0]).toHaveAttribute('aria-current', 'page');
   });
 

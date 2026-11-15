@@ -24,11 +24,11 @@
 
 Hành vi chi tiết: [`../spec/askpay-v1.md`](../spec/askpay-v1.md).
 
-## 3. Hiện trạng (09/11)
+## 3. Hiện trạng (15/11)
 
-- Có tài liệu: spec (bản nháp), system design, contract spec, API, UI, convention, quy trình SDLC.
-- **Chưa có mã.** Chưa có ví, chưa deploy, chưa có file luật gốc.
-- PR #1 (nền móng quy trình) và PR #2 (spec và bộ docs) chờ owner duyệt.
+- Đã có mã và đã merge: parse và Merkle tree của Bộ luật Lao động (C1, C2), contract `AskPayEscrow` đã deploy Fuji (K1 đến K4), nền móng (F1), `apps/api` từ báo giá đến indexer và `/stats` (A1 đến A6), web shell, hỏi và trang kết quả (W1 đến W3). Chi tiết và PR ở [tasks.csv](./tasks.csv).
+- Đang làm: W4 (dashboard) trên nhánh `feat/w4-dashboard`. Chưa làm: W5, E1, G1 và O1 đến O4.
+- Quyết định Q-01…Q-13 đã chốt, trừ Q-08 (buyer agent) hoãn tới 18/11.
 
 ## 4. Quyết định cần chốt trước khi code
 

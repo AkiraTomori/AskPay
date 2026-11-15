@@ -36,6 +36,21 @@ export function snowtraceTxUrl(hash: string): string {
   return `${SNOWTRACE_BASE_URL}/tx/${hash}`;
 }
 
+// 1284 -> "1.284". Whole numbers are never shortened ("1,3K"): on Fuji they are small and a viewer
+// compares them with Snowtrace.
+export function formatIntegerVi(n: number): string {
+  return Math.trunc(n)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// 0.262 -> "26,2%", 0.82 -> "82%": one decimal at most, and a ",0" is dropped. A ratio for reading,
+// not money, so a `number` is fine here.
+export function formatPercentVi(ratio: number): string {
+  const tenths = Math.round(ratio * 1000) / 10;
+  return `${tenths.toString().replace('.', ',')}%`;
+}
+
 const VN_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
 function vnParts(ms: number, withYear: boolean): Record<string, string> {
