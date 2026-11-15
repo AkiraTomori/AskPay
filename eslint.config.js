@@ -4,6 +4,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      '**/.next/**',
       '**/coverage/**',
       'packages/corpus/raw/**',
       'plugins/**',
