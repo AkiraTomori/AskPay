@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatUsdcVi, shortAddress, snowtraceAddressUrl } from '@/lib/format';
+import { formatUsdcVi, formatVndEstimate, shortAddress, snowtraceAddressUrl } from '@/lib/format';
 
 describe('formatUsdcVi', () => {
   it.each([
@@ -25,5 +25,16 @@ describe('shortAddress', () => {
 describe('snowtraceAddressUrl', () => {
   it('points at the Fuji testnet explorer', () => {
     expect(snowtraceAddressUrl('0xabc')).toBe('https://testnet.snowtrace.io/address/0xabc');
+  });
+});
+
+describe('formatVndEstimate (design W2 §7)', () => {
+  it('AP-02-AC03: 0.05 USDC is about 1.300đ', () => {
+    expect(formatVndEstimate(50_000n)).toBe('1.300');
+  });
+  it('rounds to the nearest 100đ and groups thousands with dots', () => {
+    expect(formatVndEstimate(1_000_000n)).toBe('26.000');
+    expect(formatVndEstimate(10_000n)).toBe('300'); // 260đ → 300đ
+    expect(formatVndEstimate(0n)).toBe('0');
   });
 });

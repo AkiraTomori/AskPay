@@ -6,12 +6,14 @@ import {
   decodeFunctionData,
   encodeFunctionResult,
   getAddress,
+  UserRejectedRequestError,
   multicall3Abi,
   numberToHex,
   type Address,
   type Hex,
 } from 'viem';
-import { createConfig, type Config } from 'wagmi';
+import { useRouter } from 'next/navigation';
+import { createConfig, type Config, type CreateConnectorFn } from 'wagmi';
 import { avalancheFuji, mainnet } from 'wagmi/chains';
 import { mock } from 'wagmi/connectors';
 import { AppShell } from '@/components/layout/AppShell';
@@ -22,6 +24,58 @@ export function must<T>(value: T | null | undefined): T {
   if (value === null || value === undefined) throw new Error('Expected a value in test');
   return value;
 }
+
+// What the fake wallet saw and how it should answer `eth_signTypedData_v4`. The mock connector
+// forwards signing to a real HTTP RPC, so the harness answers it itself (module state, reset by
+// every createTestConfig).
+export const signing = {
+  requests: [] as { account: string; typedData: Record<string, unknown> }[],
+  signature: `0x${'ab'.repeat(65)}` as Hex,
+  gate: undefined as Promise<void> | undefined,
+  hold() {
+    this.gate = new Promise<void>((resolve) => {
+      this.release = resolve;
+    });
+  },
+  release: (() => {}) as () => void,
+};
+
+// Balance reads served by the fake RPC (tests assert a payment refreshes the balance).
+export const rpcStats = { balanceReads: 0 };
+
+function withFakeSigning(create: CreateConnectorFn, error: boolean | Error | undefined) {
+  const wrapped: CreateConnectorFn = (config) => {
+    const connector = create(config);
+    const getProvider = connector.getProvider.bind(connector);
+    connector.getProvider = async (parameters) => {
+      const provider = (await getProvider(parameters)) as {
+        request: (args: { method: string; params?: unknown }) => Promise<unknown>;
+      };
+      const request = provider.request;
+      return {
+        ...provider,
+        request: async (args: { method: string; params?: unknown }) => {
+          if (args.method !== 'eth_signTypedData_v4') return request(args);
+          const [account, json] = args.params as [string, string];
+          signing.requests.push({
+            account,
+            typedData: JSON.parse(json) as Record<string, unknown>,
+          });
+          if (signing.gate) await signing.gate;
+          if (error) {
+            throw error === true ? new UserRejectedRequestError(new Error('rejected')) : error;
+          }
+          return signing.signature;
+        },
+      };
+    };
+    return connector;
+  };
+  return wrapped;
+}
+
+// The mocked router's push (test/setup.ts): the same spy every component gets.
+export const routerPush = () => useRouter().push;
 
 export const walletOf = (config: Config) => must(config.connectors[0]);
 
@@ -37,6 +91,10 @@ type Options = {
   reloadWithAuthorisedWallet?: boolean;
   connectError?: boolean | Error;
   switchChainError?: boolean | Error;
+  // true: the user rejects the signature (code 4001); an Error: that error is thrown instead.
+  signTypedDataError?: boolean | Error;
+  // The fake RPC fails every balance read: the web cannot know the balance (usdc = undefined).
+  balanceError?: boolean;
   // USDC balance per account, in base units; any other account reads 0.
   balances?: Partial<Record<Address, bigint>>;
 };
@@ -47,8 +105,13 @@ export function createTestConfig({
   reloadWithAuthorisedWallet = false,
   connectError,
   switchChainError,
+  signTypedDataError,
+  balanceError = false,
   balances = { [ACCOUNT_A]: 50_000n, [ACCOUNT_B]: 12_500_000n },
 }: Options = {}): Config {
+  signing.requests = [];
+  signing.gate = undefined;
+  rpcStats.balanceReads = 0;
   const lower = new Map(Object.entries(balances).map(([a, v]) => [a.toLowerCase(), v]));
   const balanceOf = (callData: string) =>
     numberToHex(lower.get(`0x${callData.slice(-40)}`.toLowerCase()) ?? 0n, { size: 32 });
@@ -57,6 +120,8 @@ export function createTestConfig({
   const transport = custom({
     async request({ method, params }: { method: string; params?: unknown }) {
       if (method !== 'eth_call') throw new Error(`Unexpected RPC call in test: ${method}`);
+      rpcStats.balanceReads += 1;
+      if (balanceError) throw new Error('RPC down');
       const { data } = must((params as { data: Hex }[])[0]);
       const { args } = decodeFunctionData({ abi: multicall3Abi, data });
       const calls = args[0] as readonly { callData: Hex }[];
@@ -77,14 +142,17 @@ export function createTestConfig({
         ? [mainnet, avalancheFuji]
         : [avalancheFuji, mainnet],
     connectors: [
-      mock({
-        accounts: [ACCOUNT_A],
-        features: {
-          ...(reloadWithAuthorisedWallet && { defaultConnected: true, reconnect: true }),
-          ...(connectError !== undefined && { connectError }),
-          ...(switchChainError !== undefined && { switchChainError }),
-        },
-      }),
+      withFakeSigning(
+        mock({
+          accounts: [ACCOUNT_A],
+          features: {
+            ...(reloadWithAuthorisedWallet && { defaultConnected: true, reconnect: true }),
+            ...(connectError !== undefined && { connectError }),
+            ...(switchChainError !== undefined && { switchChainError }),
+          },
+        }),
+        signTypedDataError,
+      ),
     ],
     transports: { [mainnet.id]: transport, [avalancheFuji.id]: transport },
     ssr: reloadWithAuthorisedWallet,

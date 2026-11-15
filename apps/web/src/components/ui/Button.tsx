@@ -1,10 +1,11 @@
 import { LoaderCircle } from 'lucide-react';
-import type { ButtonHTMLAttributes } from 'react';
+import type { ComponentProps } from 'react';
 import { cn } from '@/lib/cn';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+// ComponentProps (not ButtonHTMLAttributes) so React 19's `ref` prop is accepted.
+type ButtonProps = ComponentProps<'button'> & {
   variant?: Variant;
   loading?: boolean;
 };

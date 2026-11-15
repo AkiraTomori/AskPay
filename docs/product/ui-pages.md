@@ -15,7 +15,7 @@
 
 ### 1.1 Điều hướng theo trạng thái
 
-- Gửi câu hỏi thành công tới bước giữ tiền thì `router.push('/questions/<qid>')`. Trang kết quả tiếp tục poll.
+- Chuyển sang `/questions/<qid>` khi tiền chắc chắn đã vào escrow hoặc server đã nhận việc: POST lần hai trả 200, 202 hay 409 đã chốt, hoặc `stage` đã tới `ANSWERING` trở đi. `DEPOSITING` chưa đủ, vì server còn có thể đưa câu về `QUOTED`. Trang kết quả tiếp tục poll. ([W2 §6.2](../design/w2-ask.md), U-09)
 - Mở `/questions/<qid>` của câu đã chốt thì hiện kết quả ngay, không poll.
 - `qid` không tồn tại thì hiện trạng thái "Không tìm thấy câu hỏi", có nút về trang Hỏi.
 
@@ -69,7 +69,7 @@ W1 shell + ví → W2 trang Hỏi + `useAsk` → W3 trang Kết quả → W4 Das
 | Đang chờ ký | "Xác nhận trong ví…", vô hiệu | — |
 | Người dùng từ chối ký | Về trạng thái "Có báo giá" | "Bạn đã huỷ ký. Câu hỏi vẫn còn đây." |
 | Báo giá hết hạn (5 phút) | "Lấy giá mới" | — |
-| Chữ ký bị từ chối (`PAYMENT_INVALID`) | "Thử lại" | Câu lỗi lấy từ `packages/shared` |
+| Chữ ký bị từ chối (`PAYMENT_INVALID`) | "Lấy giá mới" (lấy báo giá mới và ký lại, không gửi lại chữ ký cũ; [W2 U-07](../design/w2-ask.md)) | Câu lỗi lấy từ `packages/shared` |
 
 Gửi xong thì chuyển sang `/questions/<qid>`.
 
