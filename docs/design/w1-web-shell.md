@@ -204,10 +204,10 @@ disclaimer: 'Thông tin tham khảo, không thay thế tư vấn pháp lý.'
 | W1-E06 | Từ chối chuyển mạng → thanh vẫn hiện + "Bạn đã huỷ chuyển mạng." | Vitest (`switchChainError`) |
 | W1-E07 | Đổi tài khoản trong ví → địa chỉ và số dư cập nhật không cần tải lại | Vitest |
 | W1-E08 | Toàn bộ shell dùng được chỉ bằng bàn phím: Tab tới link bỏ qua, mở/đóng hộp thoại và menu bằng Enter/Esc, focus luôn thấy | Thủ công + Testing Library |
-| W1-E09 | Thật trên Fuji: Core và MetaMask (mỗi ví một lần) kết nối được; từ C-Chain mainnet bấm "Chuyển sang Avalanche Fuji" thì chuyển được; ví chưa có Fuji thì được hỏi thêm mạng | Thủ công, ghi lại ví + phiên bản (không có tx, không cần duyệt broadcast) |
+| W1-E09 | Thật trên Fuji bằng **Core** (owner chốt 15/11/2026: một ví là đủ; **MetaMask chưa kiểm**): kết nối được; từ C-Chain mainnet bấm "Chuyển sang Avalanche Fuji" thì chuyển được; ví chưa có Fuji thì được hỏi thêm mạng | Thủ công, ghi lại ví + phiên bản (không có tx, không cần duyệt broadcast) |
 | W1-E10 | Lighthouse a11y ≥ 90 trên `/` | Thủ công |
 
-W1-E09 là "Xong khi" của ticket W1. Đây là kiểm tra thủ công, không broadcast giao dịch nào.
+W1-E09 là "Xong khi" của ticket W1, chỉ với Core; MetaMask ghi là chưa kiểm. Đây là kiểm tra thủ công, không broadcast giao dịch nào.
 
 ## 9. Ngoài phạm vi W1
 
