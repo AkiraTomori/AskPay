@@ -18,6 +18,7 @@ import {
 } from '@askpay/shared/x402';
 import type { InsufficientBalanceDetails } from '@askpay/shared/api';
 import type {
+  ChainEvent,
   ChainQuestion,
   Choice,
   DepositRequest,
@@ -30,6 +31,7 @@ import type { SendHooks } from '../../shared/tx-queue.js';
 
 // Other modules reach payments only through this service (codebase.md §3), never payment.chain.
 export type {
+  ChainEvent,
   ChainQuestion,
   DepositRequest,
   OnChainStatus,
@@ -195,5 +197,7 @@ export const readNonceState = (chain: PaymentChain) => chain.nonceState();
 export const readReceipt = (chain: PaymentChain, hash: Hex, qid: Hex) => chain.receiptOf(hash, qid);
 export const readPendingFees = (chain: PaymentChain, hash: Hex) => chain.pendingFees(hash);
 export const readLatestBlock = (chain: PaymentChain) => chain.latestBlock();
-export const readDepositedBetween = (chain: PaymentChain, from: bigint, to: bigint) =>
-  chain.depositedBetween(from, to);
+export const readEventsBetween = (chain: PaymentChain, from: bigint, to: bigint) =>
+  chain.eventsBetween(from, to);
+export const readLawRoot = (chain: PaymentChain, lawId: Hex) => chain.lawRootOf(lawId);
+export const readProviderBalance = (chain: PaymentChain) => chain.providerBalance();

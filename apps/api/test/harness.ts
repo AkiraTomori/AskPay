@@ -15,6 +15,7 @@ import type { LlmRequest } from '../src/shared/llm.js';
 import { JUDGE_SYSTEM_PROMPT } from '../src/modules/checker/checker.prompt.js';
 import { DEFAULT_CORPUS_PATH, loadCorpus } from '../src/modules/corpus/corpus.service.js';
 import type {
+  ChainEvent,
   PaymentChain,
   SettleEvent,
   SettleResult,
@@ -65,8 +66,10 @@ type MockedMethod =
   | 'nonceState'
   | 'receiptOf'
   | 'pendingFees'
-  | 'depositedBetween'
-  | 'latestBlock';
+  | 'eventsBetween'
+  | 'latestBlock'
+  | 'lawRootOf'
+  | 'providerBalance';
 export type FakeChain = Omit<PaymentChain, MockedMethod> & {
   [Method in MockedMethod]: Mock<PaymentChain[Method]>;
 } & {
@@ -76,9 +79,14 @@ export type FakeChain = Omit<PaymentChain, MockedMethod> & {
   nonce: { latest: number; pending: number };
   // Every tx the fake accepted, in order.
   sent: { fn: 'deposit' | 'settle' | 'refundByProvider'; qid: Hex; hash: Hex }[];
-  receipts: Map<Hex, { success: boolean; event?: SettleEvent }>;
+  // `qid` is the question the tx was for: a receipt read for another qid shows no event of it.
+  receipts: Map<Hex, { success: boolean; event?: SettleEvent; qid?: Hex }>;
+  // Every escrow log in the order it happened; the indexer reads these.
+  events: ChainEvent[];
   // Puts money in escrow as if a deposit had happened in an earlier life of the server.
   plantDeposit(qid: Hex, deadlineInSeconds?: number): void;
+  // The payer takes the money back after the deadline, with no server involved (AP-06).
+  claimRefund(qid: Hex): Hex;
 };
 
 const hashOf = (counter: number) => `0x${counter.toString(16).padStart(64, '0')}` as Hex;
@@ -90,21 +98,37 @@ export function createFakeChain(overrides: Partial<PaymentChain> = {}): FakeChai
   const nonce = { latest: 0, pending: 0 };
   const sent: FakeChain['sent'] = [];
   const receipts: FakeChain['receipts'] = new Map();
-  const deposits: { qid: Hex; block: number }[] = [];
+  const events: ChainEvent[] = [];
   let counter = 0;
 
   const stateOf = (qid: Hex): FakeQuestion =>
     questions.get(qid) ?? { status: 'None', payer: payer.address, amount: 0n, deadline: 0 };
 
-  function plantDeposit(qid: Hex, deadlineInSeconds = ANSWER_WINDOW) {
-    questions.set(qid, {
-      status: 'Open',
-      payer: payer.address,
-      amount: PRICE,
-      deadline: block.time + deadlineInSeconds,
-    });
+  // One log per call, in a block of its own, as the real chain would index it.
+  function emit(name: ChainEvent['name'], qid: Hex, txHash: Hex, args: Record<string, string>) {
     block.number += 1;
-    deposits.push({ qid, block: block.number });
+    events.push({ txHash, logIndex: 0, blockNumber: block.number, name, qid, args });
+  }
+
+  function plantDeposit(qid: Hex, deadlineInSeconds = ANSWER_WINDOW, txHash?: Hex) {
+    const deadline = block.time + deadlineInSeconds;
+    questions.set(qid, { status: 'Open', payer: payer.address, amount: PRICE, deadline });
+    emit('Deposited', qid, txHash ?? hashOf(0x5000_0000 + events.length), {
+      payer: payer.address.toLowerCase(),
+      amount: PRICE.toString(),
+      deadline: String(deadline),
+    });
+  }
+
+  function claimRefund(qid: Hex): Hex {
+    const hash = hashOf(0x6000_0000 + events.length);
+    questions.set(qid, { ...stateOf(qid), status: 'Refunded' });
+    emit('Refunded', qid, hash, {
+      payer: payer.address.toLowerCase(),
+      amount: PRICE.toString(),
+      reason: 'TIMEOUT',
+    });
+    return hash;
   }
 
   // The contract's `settle` after the signature check (contracts.md §4.2), or null if it reverts.
@@ -142,7 +166,20 @@ export function createFakeChain(overrides: Partial<PaymentChain> = {}): FakeChai
     const question = stateOf(qid);
     questions.set(qid, { ...question, status: event.name === 'Paid' ? 'Paid' : 'Refunded' });
     sent.push({ fn, qid, hash });
-    receipts.set(hash, { success: true, event });
+    receipts.set(hash, { success: true, event, qid });
+    emit(
+      event.name,
+      qid,
+      hash,
+      event.name === 'Paid'
+        ? {
+            provider: 'provider',
+            amount: PRICE.toString(),
+            answerHash: event.answerHash,
+            citationsHash: event.citationsHash,
+          }
+        : { payer: question.payer.toLowerCase(), amount: PRICE.toString(), reason: event.reason },
+    );
     nonce.latest += 1;
     nonce.pending += 1;
   }
@@ -164,9 +201,9 @@ export function createFakeChain(overrides: Partial<PaymentChain> = {}): FakeChai
     deposit: vi.fn(async (request, hooks) => {
       const hash = hashOf(++counter);
       hooks?.onSigned?.({ hash, nonce: nonce.pending, replacement: false });
-      plantDeposit(request.qid);
+      plantDeposit(request.qid, ANSWER_WINDOW, hash);
       sent.push({ fn: 'deposit', qid: request.qid, hash });
-      receipts.set(hash, { success: true });
+      receipts.set(hash, { success: true, qid: request.qid });
       nonce.latest += 1;
       nonce.pending += 1;
       return { kind: 'mined' as const, hash, success: true, logs: [] };
@@ -201,19 +238,31 @@ export function createFakeChain(overrides: Partial<PaymentChain> = {}): FakeChai
       return { kind: 'mined', hash, success: true, logs: [], event };
     }),
     nonceState: vi.fn(async () => ({ ...nonce })),
-    receiptOf: vi.fn(async (hash: Hex) => receipts.get(hash)),
+    // Like the real one: a receipt exists for the tx, but only a log for THIS qid counts as its event.
+    receiptOf: vi.fn(async (hash: Hex, qid: Hex) => {
+      const receipt = receipts.get(hash);
+      if (!receipt) return undefined;
+      if (receipt.qid && receipt.qid.toLowerCase() !== qid.toLowerCase()) {
+        return { success: receipt.success };
+      }
+      return { success: receipt.success, ...(receipt.event ? { event: receipt.event } : {}) };
+    }),
     pendingFees: vi.fn(async () => ({ maxFeePerGas: 100n, maxPriorityFeePerGas: 10n })),
-    depositedBetween: vi.fn(async (from: bigint, to: bigint) =>
-      deposits.filter((d) => BigInt(d.block) >= from && BigInt(d.block) <= to).map((d) => d.qid),
+    eventsBetween: vi.fn(async (from: bigint, to: bigint) =>
+      events.filter((e) => BigInt(e.blockNumber) >= from && BigInt(e.blockNumber) <= to),
     ),
     latestBlock: vi.fn(async () => BigInt(block.number)),
+    lawRootOf: vi.fn(async () => corpus.root),
+    providerBalance: vi.fn(async () => 1_420_000_000_000_000_000n),
     ...overrides,
     questions,
     block,
     nonce,
     sent,
     receipts,
+    events,
     plantDeposit,
+    claimRefund,
   };
   return chain as unknown as FakeChain;
 }
@@ -271,6 +320,8 @@ export interface TestOptions {
   chain?: ReturnType<typeof createFakeChain>;
   llm?: ReturnType<typeof createFakeLlm>;
   rateLimitPerMinute?: number;
+  readRateLimitPerMinute?: number;
+  trustProxyHops?: number;
   quoteTtlSeconds?: number;
   requestWaitMs?: number;
   demoFakeCitation?: boolean;
@@ -280,6 +331,9 @@ export interface TestOptions {
   checkerSigner?: typeof checker;
   now?: () => number;
   scanChunk?: number;
+  evalPath?: string;
+  logger?: ReturnType<typeof createLogger>;
+  llmStatus?: () => 'ok' | 'down';
 }
 
 export function createTestApp(options: TestOptions = {}) {
@@ -288,7 +342,7 @@ export function createTestApp(options: TestOptions = {}) {
   const store = options.store ?? openStore(':memory:');
   const clock = { now: T0 };
   let salt = 0;
-  const logger = createLogger('silent');
+  const logger = options.logger ?? createLogger('silent');
   const composed = compose({
     config: {
       priceUnits: PRICE,
@@ -307,10 +361,15 @@ export function createTestApp(options: TestOptions = {}) {
     requestWaitMs: options.requestWaitMs ?? 5_000,
     scanPauseMs: 0,
     ...(options.scanChunk ? { scanChunk: options.scanChunk } : {}),
+    ...(options.evalPath ? { evalPath: options.evalPath } : {}),
+    ...(options.llmStatus ? { llmStatus: options.llmStatus } : {}),
   });
   const app = createApp({
     askService: composed.askService,
+    historyService: composed.historyService,
     rateLimitPerMinute: options.rateLimitPerMinute ?? 1000,
+    readRateLimitPerMinute: options.readRateLimitPerMinute ?? 1000,
+    ...(options.trustProxyHops ? { trustProxyHops: options.trustProxyHops } : {}),
     logger,
   });
   return { api: supertest(app), chain, store, clock, llm: fakeLlm, ...composed };

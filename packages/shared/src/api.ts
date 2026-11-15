@@ -134,6 +134,17 @@ export const questionListItemSchema = z.object({
   tx: z.object({ settle: txHashSchema.optional() }),
 });
 
+export type QuestionListItem = z.infer<typeof questionListItemSchema>;
+
+// eval/results/latest.json (AP-09-AC03): what the dashboard shows of the last eval run.
+export const evalSummarySchema = z.object({
+  runAt: z.string(),
+  commit: z.string(),
+  citationAccuracy: z.number(),
+  checkerPassRate: z.number(),
+  outOfScopeCorrect: z.number(),
+});
+
 export const statsSchema = z.object({
   questions: z.number().int().nonnegative(),
   paid: z.number().int().nonnegative(),
@@ -142,16 +153,9 @@ export const statsSchema = z.object({
   refundsByReason: z.record(refundReasonSchema, z.number().int().nonnegative()),
   providerRevenue: amountSchema,
   lastIndexedBlock: z.number().int().nonnegative(),
-  eval: z
-    .object({
-      runAt: z.string(),
-      commit: z.string(),
-      citationAccuracy: z.number(),
-      checkerPassRate: z.number(),
-      outOfScopeCorrect: z.number(),
-    })
-    .nullable(),
+  eval: evalSummarySchema.nullable(),
 });
+export type Stats = z.infer<typeof statsSchema>;
 
 export const corpusInfoSchema = z.object({
   lawId: bytes32Schema,
@@ -173,3 +177,6 @@ export const healthSchema = z.object({
   lowBalance: z.boolean(),
   indexerLagBlocks: z.number().int().nonnegative(),
 });
+
+export type CorpusInfo = z.infer<typeof corpusInfoSchema>;
+export type Health = z.infer<typeof healthSchema>;

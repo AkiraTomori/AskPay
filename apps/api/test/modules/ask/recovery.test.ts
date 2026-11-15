@@ -6,7 +6,6 @@ import { keccak256, toBytes, type Hex } from 'viem';
 import { LlmError } from '../../../src/shared/llm.js';
 import {
   insertQuote,
-  readCheckpoint,
   transitionStage,
   type Patch,
   type Stage,
@@ -128,7 +127,7 @@ describe('AP-05-AC08 after a restart every question with money in escrow is hand
     const orphan = nextQid();
     test.chain.plantDeposit(orphan); // the DB never heard of it
     const after = createTestApp({ chain: test.chain }); // a brand new, empty database
-    await after.recovery.sweep();
+    await after.indexer.sweep(); // the indexer finds the deposit, recovery decides what it means
 
     expect(sentFns(test.chain)).toEqual(['refundByProvider']);
     expect(test.chain.questions.get(orphan)?.status).toBe('Refunded');
@@ -349,7 +348,7 @@ describe('§5.6 F a deposit nobody is answering is refunded, not left for the pa
       const qid = seed(test, stage);
       test.chain.plantDeposit(qid);
 
-      await test.recovery.sweep();
+      await test.indexer.sweep();
       expect(stageOf(test, qid)).toBe('REFUNDED');
       expect(sentFns(test.chain)).toEqual(['refundByProvider']);
       expect(test.llm.state.calls).toHaveLength(0);
@@ -372,173 +371,6 @@ describe('§5.6 F a deposit nobody is answering is refunded, not left for the pa
     test.chain.plantDeposit(qid);
     await test.recovery.onDeposited(qid);
     expect(stageOf(test, qid)).toBe('REFUNDED');
-  });
-
-  it('scans new blocks only: a second sweep does not read old ranges again', async () => {
-    const test = createTestApp();
-    await test.recovery.sweep();
-    const calls = test.chain.depositedBetween.mock.calls.length;
-    await test.recovery.sweep();
-    expect(test.chain.depositedBetween.mock.calls.length).toBe(calls); // nothing new to read
-    test.chain.block.number += 5;
-    await test.recovery.sweep();
-    expect(test.chain.depositedBetween.mock.calls.length).toBe(calls + 1);
-  });
-
-  it('halves the log range when the RPC refuses it, and still finds the deposit', async () => {
-    const chain = createFakeChain();
-    const orphan = nextQid();
-    chain.plantDeposit(orphan);
-    const real = chain.depositedBetween.getMockImplementation();
-    chain.depositedBetween.mockImplementation(async (from, to) => {
-      if (to - from > 100n) throw new Error('range too large');
-      return real ? real(from, to) : [];
-    });
-    const test = createTestApp({ chain });
-    await test.recovery.sweep();
-    expect(chain.questions.get(orphan)?.status).toBe('Refunded');
-  });
-});
-
-describe('the deposit scan never hammers the RPC and never stops the server from starting', () => {
-  it('a rate limit is not a range problem: one read, no shrinking, and no retry before the backoff', async () => {
-    const chain = createFakeChain();
-    chain.depositedBetween.mockRejectedValue(
-      new Error('HTTP request failed. Status: 429. Too many requests'),
-    );
-    const test = createTestApp({ chain });
-
-    await test.recovery.sweep();
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(1);
-
-    await test.recovery.sweep(); // the next sweep comes too soon
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(1);
-
-    test.clock.now += 61_000; // after the first backoff (60 s) it tries once more, with the SAME range
-    await test.recovery.sweep();
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(2);
-    const [first, second] = chain.depositedBetween.mock.calls;
-    expect(second).toEqual(first);
-  });
-
-  it('the wait grows with every failure', async () => {
-    const chain = createFakeChain();
-    chain.depositedBetween.mockRejectedValue(new Error('fetch failed'));
-    const test = createTestApp({ chain });
-    await test.recovery.sweep(); // fails: next try after 60 s
-    test.clock.now += 61_000;
-    await test.recovery.sweep(); // fails again: next try after 120 s
-    test.clock.now += 61_000;
-    await test.recovery.sweep(); // still blocked
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(2);
-    test.clock.now += 60_000;
-    await test.recovery.sweep();
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(3);
-  });
-
-  it('a failing scan does not make startup throw: rows are still reconciled', async () => {
-    const chain = createFakeChain();
-    chain.depositedBetween.mockRejectedValue(new Error('rate limit'));
-    const test = createTestApp({ chain });
-    const qid = seed(test, 'ANSWERING');
-    chain.plantDeposit(qid);
-    await expect(test.recovery.sweep()).resolves.toBeUndefined();
-    expect(stageOf(test, qid)).toBe('REFUNDED');
-  });
-
-  it('a range error shrinks the range, but stops at the floor instead of asking for ever less', async () => {
-    const chain = createFakeChain();
-    chain.depositedBetween.mockRejectedValue(new Error('query exceeds max block range'));
-    const test = createTestApp({ chain });
-    await test.recovery.sweep();
-    // 100 -> 50 -> 25 (the floor), then the failure is final.
-    expect(chain.depositedBetween.mock.calls.length).toBeLessThanOrEqual(5);
-  });
-
-  it('reads at most 40 ranges per pass and carries on from where it stopped', async () => {
-    const chain = createFakeChain();
-    const orphan = nextQid();
-    chain.plantDeposit(orphan);
-    chain.block.number = 1_500; // 1 + 1500 blocks, in ranges of 10 blocks
-    const test = createTestApp({ chain });
-    const small = createTestApp({ chain, store: test.store, scanChunk: 10 });
-    await small.recovery.sweep();
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(40);
-    await small.recovery.sweep();
-    expect(chain.depositedBetween).toHaveBeenCalledTimes(80);
-    // The deposit is in block 1001, not yet reached: 80 ranges of 10 blocks cover blocks 0 to 799.
-    expect(chain.questions.get(orphan)?.status).toBe('Open');
-    await small.recovery.sweep(); // blocks 800 to 1199
-    expect(chain.questions.get(orphan)?.status).toBe('Refunded');
-  });
-});
-
-describe('startup waits for the rows, not for the scan', () => {
-  it('startup reconciles rows and returns without reading any log; the scan starts with start()', async () => {
-    const test = createTestApp();
-    const qid = seed(test, 'ANSWERING');
-    test.chain.plantDeposit(qid);
-
-    await test.recovery.startup();
-    expect(stageOf(test, qid)).toBe('REFUNDED'); // rows are done before requests are accepted
-    expect(test.chain.depositedBetween).not.toHaveBeenCalled(); // the scan is not
-
-    test.recovery.start();
-    await vi.waitFor(() => expect(test.chain.depositedBetween).toHaveBeenCalled());
-    test.recovery.stop();
-  });
-});
-
-describe('the scan checkpoint (system-design §7)', () => {
-  it('a restart over the same database continues after the checkpoint', async () => {
-    const test = createTestApp();
-    await test.recovery.sweep();
-    expect(readCheckpoint(test.store)).toBe(BigInt(test.chain.block.number));
-
-    test.chain.block.number += 3;
-    const after = restart(test);
-    await after.recovery.sweep();
-    const lastCall = test.chain.depositedBetween.mock.calls.at(-1);
-    expect(lastCall).toEqual([
-      BigInt(test.chain.block.number) - 2n,
-      BigInt(test.chain.block.number),
-    ]);
-  });
-
-  it('a lost database has no checkpoint, so the scan starts again at the deployment block', async () => {
-    const test = createTestApp();
-    await test.recovery.sweep();
-    const fresh = createTestApp({ chain: test.chain }); // new, empty database
-    expect(readCheckpoint(fresh.store)).toBeUndefined();
-    const before = test.chain.depositedBetween.mock.calls.length;
-    await fresh.recovery.sweep();
-    expect(test.chain.depositedBetween.mock.calls[before]?.[0]).toBe(0n);
-  });
-
-  it('without a checkpoint it looks back 24 hours of blocks, not to the deployment block', async () => {
-    const chain = createFakeChain();
-    chain.block.number = 100_000;
-    const test = createTestApp({ chain });
-    await test.recovery.sweep();
-    expect(chain.depositedBetween.mock.calls[0]?.[0]).toBe(100_000n - 43_200n + 1n);
-  });
-
-  it('a Deposited log that could not be handled is not skipped: the cursor stays and it is retried', async () => {
-    const chain = createFakeChain();
-    const orphan = nextQid();
-    chain.plantDeposit(orphan);
-    chain.question.mockRejectedValueOnce(new Error('rpc hiccup'));
-    const test = createTestApp({ chain });
-
-    await test.recovery.sweep();
-    expect(chain.questions.get(orphan)?.status).toBe('Open');
-    // The cursor stopped before the range holding the failed log, so nothing after it is skipped.
-    expect(readCheckpoint(test.store)).toBeLessThan(BigInt(chain.block.number));
-
-    test.clock.now += 61_000; // past the backoff
-    await test.recovery.sweep();
-    expect(chain.questions.get(orphan)?.status).toBe('Refunded');
-    expect(readCheckpoint(test.store)).toBe(BigInt(chain.block.number));
   });
 });
 

@@ -32,7 +32,7 @@ askpay/
 │   │   │       ├── retrieval/  retrieval.service.ts · bm25.ts
 │   │   │       ├── answer/     answer.service.ts · answer.prompt.ts
 │   │   │       ├── checker/    checker.service.ts · checker.prompt.ts
-│   │   │       ├── history/    history.routes.ts · history.service.ts · history.repository.ts
+│   │   │       ├── history/    history.routes.ts · history.service.ts
 │   │   │       └── indexer/    indexer.service.ts · indexer.repository.ts
 │   │   ├── test/                (phản chiếu src/)
 │   │   └── scripts/e2e-fuji.ts  (luồng thật trên Fuji, không nằm trong npm test)
@@ -81,7 +81,6 @@ flowchart TD
     P --> PC["payment.chain"] --> Q["shared/tx-queue"] --> CH["shared/chain"]
     I["indexer.service"] --> CH
     I --> IR["indexer.repository"] --> ST["shared/store"]
-    H --> HR["history.repository"] --> ST
     A --> L["LLM SDK"]
     C --> L
     RT --> CORPUS["@askpay/corpus data"]

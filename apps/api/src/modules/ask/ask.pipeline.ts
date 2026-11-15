@@ -44,6 +44,9 @@ export interface PipelineDeps {
   corpus: CorpusService;
   retrieve: (question: string) => Candidate[];
   demoFakeCitation: boolean;
+  // A Paid event this process read from a receipt over RPC: remembered so the result page need not
+  // read the same receipt again (T-13, Q-13).
+  onPaid?: (qid: Hex, settleTx: Hex, event: Extract<SettleEvent, { name: 'Paid' }>) => void;
 }
 
 export interface Pipeline {
@@ -57,6 +60,8 @@ export interface Pipeline {
   resend(qid: Hex, hooks?: Partial<SendHooks>): Promise<void>;
   syncFromChain(qid: Hex): Promise<void>;
   finalize(qid: Hex, event: SettleEvent, settleTx: Hex): void;
+  // The indexer's lever: a Paid or Refunded log was read from the chain (A6).
+  recordClosed(qid: Hex, event: SettleEvent, txHash: Hex): void;
 }
 
 const ACTIVE: readonly Stage[] = ['ANSWERING', 'CHECKING', 'SETTLING'];
@@ -107,7 +112,21 @@ export function createPipeline(deps: PipelineDeps): Pipeline {
     } else {
       transitionStage(store, qid, NOT_FINAL, 'REFUNDED', now(), { ...base, reason: event.reason });
     }
+    if (event.name === 'Paid') deps.onPaid?.(qid, settleTx, event);
     logger.info({ qid, event: event.name, tx: settleTx }, 'question closed on-chain');
+  }
+
+  // A log the indexer read. A question that is still open here is closed from it. One that
+  // syncFromChain already closed from the chain's STATUS lacks what only a log carries: the refund
+  // reason, and the tx that did it (which may be the payer's claimRefund, not ours).
+  function recordClosed(qid: Hex, event: SettleEvent, txHash: Hex): void {
+    const row = findQuestion(store, qid);
+    if (!row) return; // not a question this database knows (a lost database): nothing to show
+    if (row.stage !== 'PAID' && row.stage !== 'REFUNDED') return finalize(qid, event, txHash);
+    patchQuestion(store, qid, ['PAID', 'REFUNDED'], now(), {
+      ...(row.settleTx === null ? { settleTx: txHash } : {}),
+      ...(event.name === 'Refunded' && row.reason === null ? { reason: event.reason } : {}),
+    });
   }
 
   // The chain already closed it (our tx mined earlier, or the payer claimed after the deadline):
@@ -329,5 +348,5 @@ export function createPipeline(deps: PipelineDeps): Pipeline {
     }
   }
 
-  return { run, startLate, refund, resend, syncFromChain, finalize };
+  return { run, startLate, refund, resend, syncFromChain, finalize, recordClosed };
 }

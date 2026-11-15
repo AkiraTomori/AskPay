@@ -96,6 +96,26 @@ describe('loadConfig', () => {
     });
   });
 
+  describe('read endpoint limits', () => {
+    it('defaults to 120 reads a minute and no proxy in front of the server', () => {
+      expect(loadConfig(base)).toMatchObject({ readRateLimitPerMinute: 120, trustProxyHops: 0 });
+    });
+
+    it('can be changed, and refuses nonsense', () => {
+      const config = loadConfig({
+        ...base,
+        READ_RATE_LIMIT_PER_MINUTE: '300',
+        TRUST_PROXY_HOPS: '1',
+      });
+      expect(config).toMatchObject({ readRateLimitPerMinute: 300, trustProxyHops: 1 });
+      expect(() => loadConfig({ ...base, READ_RATE_LIMIT_PER_MINUTE: '0' })).toThrow(
+        /READ_RATE_LIMIT_PER_MINUTE/,
+      );
+      expect(() => loadConfig({ ...base, TRUST_PROXY_HOPS: '-1' })).toThrow(/TRUST_PROXY_HOPS/);
+      expect(() => loadConfig({ ...base, TRUST_PROXY_HOPS: 'many' })).toThrow(/TRUST_PROXY_HOPS/);
+    });
+  });
+
   describe('demo fake citation', () => {
     it('is off unless explicitly turned on', () => {
       expect(loadConfig(base).demoFakeCitation).toBe(false);

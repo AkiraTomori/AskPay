@@ -1,14 +1,13 @@
 // Brings every question that still has money in escrow to an on-chain end, whatever happened to
 // this process in the meantime (system-design §5.6 D and F, AP-05-AC08, AP-03-AC06).
 //
-// One routine does both jobs: it runs once at startup, BEFORE the server takes requests (so the
-// nonce counter starts from a reconciled state), then again on a timer. The chain is the truth:
-// a row is closed from a receipt's event, or from the chain's status; never from the DB alone.
+// It runs once at startup, BEFORE the server takes requests (so the nonce counter starts from a
+// reconciled state), then again on a timer. The chain is the truth: a row is closed from a receipt's
+// event, or from the chain's status; never from the DB alone. The scan for stray deposits is the
+// indexer's job (A6); it calls onDeposited for every Deposited log it reads.
 import type { Hex } from 'viem';
 import { RECEIPT_TIMEOUT_MS } from '../../shared/tx-queue.js';
 import {
-  readDepositedBetween,
-  readLatestBlock,
   readNonceState,
   readPendingFees,
   readQuestion,
@@ -20,9 +19,7 @@ import {
   findQuestion,
   listByStages,
   patchQuestion,
-  readCheckpoint,
   transitionStage,
-  writeCheckpoint,
   type QuestionRow,
   type Stage,
 } from './ask.repository.js';
@@ -30,69 +27,25 @@ import {
 export interface RecoveryDeps {
   ctx: AskContext;
   pipeline: Pipeline;
-  // contracts/deployments/fuji.json: the scan for stray deposits starts here.
-  deploymentBlock: bigint;
-  scanChunk?: number;
-  // How far back to scan when there is no checkpoint.
-  lookbackBlocks?: number;
-  // Pause between two log reads of one scan, so catching up never looks like an attack to the RPC.
-  scanPauseMs?: number;
   intervalMs: number;
 }
 
 export interface Recovery {
   // Table D: reconcile every unresolved row with the chain. Await it before accepting requests, so
-  // the nonce counter starts from a settled state. The scan for stray deposits is NOT awaited: it
-  // runs in the background from start() on, because catching up can take minutes.
+  // the nonce counter starts from a settled state.
   startup(): Promise<void>;
   // One periodic pass; safe to call while requests run.
   sweep(): Promise<void>;
-  // §5.6 F: the entry the indexer (A6) calls for every Deposited log it records.
+  // §5.6 F: the entry the indexer calls for every Deposited log it records.
   onDeposited(qid: Hex): Promise<boolean>;
   start(): void;
   stop(): void;
 }
 
 const UNRESOLVED: readonly Stage[] = ['DEPOSITING', 'ANSWERING', 'CHECKING', 'SETTLING'];
-// The public Fuji RPC answers eth_getLogs for at most 100 blocks ("block range too large ... exceeds
-// the maximum of 100 blocks", read from the live endpoint on 14/11/2026). A better RPC can raise it
-// with LOG_RANGE_BLOCKS.
-export const DEFAULT_SCAN_CHUNK = 100;
-// With no checkpoint (a new or lost database) the scan looks back this far, not to the deployment
-// block: 100 blocks per read, that would be ~430 reads for every day since deployment. Fuji makes
-// about one block per 2 s. A deposit older than this is still safe: its payer can claimRefund after
-// the deadline without the server (AP-06).
-export const DEFAULT_LOOKBACK_BLOCKS = 43_200;
-// Below this a range error is not about the range: stop instead of asking for ever smaller pieces.
-const MIN_SCAN_CHUNK = 25;
-// One pass reads at most this many ranges; the rest waits for the next sweep. A long catch-up is
-// spread out instead of sent as one burst (a public RPC bans bursts: Cloudflare error 1015).
-const MAX_SCAN_CALLS_PER_PASS = 40;
-// Catching up is not latency-critical, and the public RPC has banned bursts: a full lookback of
-// ~430 reads takes about 7 minutes at this pace.
-const DEFAULT_SCAN_PAUSE_MS = 1_000;
-const SCAN_BACKOFF_START_MS = 60_000;
-const SCAN_BACKOFF_MAX_MS = 10 * 60_000;
-
-// Only an error that says the RANGE is the problem may shrink it. A rate limit or a dead node is not
-// fixed by asking for less, and retrying it at once is what gets an IP banned.
-function isRangeError(error: unknown): boolean {
-  const text =
-    error instanceof Error
-      ? `${error.message} ${(error as { details?: string }).details ?? ''}`
-      : '';
-  if (/429|rate.?limit|too many requests|timeout|fetch failed|ECONN/i.test(text)) return false;
-  return /range|too (large|many|big)|exceed|more than|limit exceeded|response size/i.test(text);
-}
-
 export function createRecovery(deps: RecoveryDeps): Recovery {
   const { ctx, pipeline } = deps;
   const { store, chain, logger, now } = ctx;
-  let chunk = deps.scanChunk ?? DEFAULT_SCAN_CHUNK;
-  const pauseMs = deps.scanPauseMs ?? DEFAULT_SCAN_PAUSE_MS;
-  let scanCursor: bigint | undefined = readCheckpoint(store); // last block fully handled
-  let scanFailures = 0;
-  let scanBlockedUntil = 0; // unix ms: after a failed read, do not try again before this
   let timer: ReturnType<typeof setInterval> | undefined;
   let sweeping = false;
   // One replacement per question per process: a second one is the payer's claimRefund to settle.
@@ -225,66 +178,6 @@ export function createRecovery(deps: RecoveryDeps): Recovery {
     });
   }
 
-  // Deposited logs from the deployment block (or where the last scan stopped), in chunks that
-  // shrink when the RPC says the range is too big. Never throws: a scan that fails is retried on a
-  // later sweep, with a growing wait, and the server runs meanwhile. The indexer (A6) replaces this
-  // with a stored checkpoint.
-  async function scan(): Promise<void> {
-    if (now() < scanBlockedUntil) return;
-    let calls = 0;
-    try {
-      const latest = await readLatestBlock(chain);
-      let from: bigint;
-      if (scanCursor !== undefined) from = scanCursor + 1n;
-      else {
-        const lookback = latest - BigInt(deps.lookbackBlocks ?? DEFAULT_LOOKBACK_BLOCKS) + 1n;
-        from = lookback > deps.deploymentBlock ? lookback : deps.deploymentBlock;
-      }
-      while (from <= latest && calls < MAX_SCAN_CALLS_PER_PASS) {
-        const to = from + BigInt(chunk) - 1n > latest ? latest : from + BigInt(chunk) - 1n;
-        let qids: Hex[];
-        try {
-          calls += 1;
-          qids = await readDepositedBetween(chain, from, to);
-        } catch (error) {
-          if (isRangeError(error) && chunk > MIN_SCAN_CHUNK) {
-            chunk = Math.max(MIN_SCAN_CHUNK, Math.floor(chunk / 2));
-            logger.warn({ chunk }, 'log range refused; retrying with a smaller range');
-            continue;
-          }
-          throw error;
-        }
-        for (const qid of qids) {
-          // A deposit that could not be handled must not be skipped: stop, keep the cursor, retry.
-          if (!(await onDeposited(qid))) throw new Error('could not handle a Deposited log');
-        }
-        scanCursor = to;
-        writeCheckpoint(store, to);
-        from = to + 1n;
-        if (from <= latest && pauseMs > 0)
-          await new Promise((resolve) => setTimeout(resolve, pauseMs));
-      }
-      scanFailures = 0;
-      if (from > latest) logger.info({ block: Number(latest) }, 'deposit scan caught up');
-    } catch (error) {
-      scanFailures += 1;
-      const wait = Math.min(SCAN_BACKOFF_MAX_MS, SCAN_BACKOFF_START_MS * 2 ** (scanFailures - 1));
-      scanBlockedUntil = now() + wait;
-      logger.warn(
-        {
-          error: error instanceof Error ? error.message.slice(0, 200) : 'unknown',
-          retryInMs: wait,
-        },
-        'deposit scan failed; will retry later',
-      );
-    }
-  }
-
-  async function pass(): Promise<void> {
-    await rows();
-    await scan();
-  }
-
   async function rows(): Promise<void> {
     for (const row of listByStages(store, UNRESOLVED)) await reconcile(row);
   }
@@ -298,7 +191,7 @@ export function createRecovery(deps: RecoveryDeps): Recovery {
       if (sweeping) return;
       sweeping = true;
       try {
-        await pass();
+        await rows();
       } catch (error) {
         logger.error(
           { error: error instanceof Error ? error.message : 'unknown' },
@@ -309,7 +202,6 @@ export function createRecovery(deps: RecoveryDeps): Recovery {
       }
     },
     start() {
-      void this.sweep(); // the first scan begins now, in the background
       timer = setInterval(() => void this.sweep(), deps.intervalMs);
       timer.unref();
     },

@@ -3,7 +3,7 @@
 // wrong corpus from ever taking money.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
-import { encodeAbiParameters, encodeEventTopics, type Hex, type Log } from 'viem';
+import { encodeAbiParameters, encodeEventTopics, parseEventLogs, type Hex, type Log } from 'viem';
 import { askPayEscrowAbi, fujiDeployment } from '@askpay/shared/abi';
 import { BLLD_2019_LAW_ID } from '@askpay/shared/leaf';
 import {
@@ -150,6 +150,116 @@ describe('P2 PAID and REFUNDED come only from a Paid or Refunded log of THIS esc
     const names = body.split(',').map((name) => name.trim());
     const snake = (name: string) => name.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
     expect(REFUND_REASON_BY_INDEX).toEqual(names.map(snake));
+  });
+});
+
+describe('eventsBetween: the logs the indexer stores, decoded the way viem delivers them (A6, T-09)', () => {
+  const PAYER = `0x${'0b'.repeat(20)}` as const;
+  const at = (log: Log, block: number, index: number, tx: Hex | null = hash(block)): Log =>
+    ({ ...log, blockNumber: BigInt(block), logIndex: index, transactionHash: tx }) as Log;
+  const depositedLog = (qid: Hex): Log =>
+    ({
+      address: ESCROW,
+      topics: encodeEventTopics({
+        abi: askPayEscrowAbi,
+        eventName: 'Deposited',
+        args: { qid, payer: PAYER },
+      }),
+      data: encodeAbiParameters(
+        [{ type: 'uint256' }, { type: 'uint64' }],
+        [50_000n, 1_762_700_600n],
+      ),
+    }) as unknown as Log;
+  const lawRootLog = (): Log =>
+    ({
+      address: ESCROW,
+      topics: encodeEventTopics({
+        abi: askPayEscrowAbi,
+        eventName: 'LawRootSet',
+        args: { lawId: BLLD_2019_LAW_ID },
+      }),
+      data: encodeAbiParameters([{ type: 'bytes32' }], [ROOT]),
+    }) as unknown as Log;
+  const providerSetLog = (): Log =>
+    ({
+      address: ESCROW,
+      topics: encodeEventTopics({ abi: askPayEscrowAbi, eventName: 'ProviderSet' }),
+      data: encodeAbiParameters([{ type: 'address' }], [PROVIDER]),
+    }) as unknown as Log;
+
+  async function read(raw: Log[]) {
+    const clients = fakeClients();
+    // Like getContractEvents: the logs of the ABI's events, decoded, with eventName and args.
+    (clients.publicClient as unknown as { getContractEvents: unknown }).getContractEvents = vi.fn(
+      async () => parseEventLogs({ abi: askPayEscrowAbi, logs: raw }),
+    );
+    const chain = await make(fakeQueue().queue, clients);
+    return chain.eventsBetween(10n, 20n);
+  }
+
+  it('keeps Deposited, Paid, Refunded and LawRootSet with strings only, qid and position', async () => {
+    const events = await read([
+      at(lawRootLog(), 10, 0),
+      at(depositedLog(QID), 11, 3),
+      at(paidLog(ESCROW, QID), 12, 1),
+      at(refundedLog(ESCROW, OTHER_QID, 4), 13, 0),
+    ]);
+    expect(events).toEqual([
+      {
+        txHash: hash(10),
+        logIndex: 0,
+        blockNumber: 10,
+        name: 'LawRootSet',
+        qid: null,
+        args: { lawId: BLLD_2019_LAW_ID, root: ROOT },
+      },
+      {
+        txHash: hash(11),
+        logIndex: 3,
+        blockNumber: 11,
+        name: 'Deposited',
+        qid: QID,
+        args: { payer: PAYER, amount: '50000', deadline: '1762700600' },
+      },
+      {
+        txHash: hash(12),
+        logIndex: 1,
+        blockNumber: 12,
+        name: 'Paid',
+        qid: QID,
+        args: {
+          provider: PROVIDER,
+          amount: '50000',
+          answerHash: hash(0xa1),
+          citationsHash: hash(0xc1),
+        },
+      },
+      {
+        txHash: hash(13),
+        logIndex: 0,
+        blockNumber: 13,
+        name: 'Refunded',
+        qid: OTHER_QID,
+        args: { payer: PROVIDER, amount: '50000', reason: 'ANSWER_FAILED' },
+      },
+    ]);
+  });
+
+  it('leaves out configuration events and logs that are still pending', async () => {
+    const events = await read([
+      at(providerSetLog(), 9, 0),
+      at(depositedLog(QID), 11, 0, null), // pending: no tx hash to key it by
+      at(depositedLog(OTHER_QID), 12, 0),
+    ]);
+    expect(events.map((event) => event.qid)).toEqual([OTHER_QID]);
+  });
+
+  it('reads the root registered for a law and the provider balance for /health', async () => {
+    const clients = fakeClients();
+    (clients.publicClient as unknown as { getBalance: unknown }).getBalance = vi.fn(async () => 5n);
+    const chain = await make(fakeQueue().queue, clients);
+    expect(await chain.lawRootOf(BLLD_2019_LAW_ID)).toBe(ROOT);
+    expect(await chain.providerBalance()).toBe(5n);
   });
 });
 

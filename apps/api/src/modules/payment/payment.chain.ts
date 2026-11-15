@@ -74,6 +74,17 @@ export type SettleResult = TxOutcome & { event?: SettleEvent };
 // Which function to sign, asked again before every signing (§5.6 B, the cutoff rule).
 export type Choice = 'settle' | 'refund';
 
+// One escrow log as the indexer stores it (system-design §7). `args` holds strings only: bigints as
+// decimal text, addresses lower-case, a Refunded reason as its code (RefundReasonCode).
+export interface ChainEvent {
+  txHash: Hex;
+  logIndex: number;
+  blockNumber: number;
+  name: 'LawRootSet' | 'Deposited' | 'Paid' | 'Refunded';
+  qid: Hex | null;
+  args: Record<string, string>;
+}
+
 export interface PaymentChain {
   readonly escrow: Address;
   readonly token: Address;
@@ -99,9 +110,14 @@ export interface PaymentChain {
   pendingFees(
     hash: Hex,
   ): Promise<{ maxFeePerGas?: bigint; maxPriorityFeePerGas?: bigint } | undefined>;
-  // Deposited events in a block range, for the lost-database scan.
-  depositedBetween(from: bigint, to: bigint): Promise<Hex[]>;
+  // Every LawRootSet, Deposited, Paid and Refunded log in a block range: ONE RPC call, because the
+  // public RPC limits both the range and the rate (T-09).
+  eventsBetween(from: bigint, to: bigint): Promise<ChainEvent[]>;
   latestBlock(): Promise<bigint>;
+  // The root the escrow holds for a law, for /corpus (AP-01-AC04).
+  lawRootOf(lawId: Hex): Promise<Hex>;
+  // Provider wallet balance in wei, for /health.
+  providerBalance(): Promise<bigint>;
 }
 
 // What the server needs to be true about the deployment before it takes any money.
@@ -267,18 +283,21 @@ export async function createPaymentChain(
       }
     },
 
-    async depositedBetween(from, to) {
+    async eventsBetween(from, to) {
       const logs = await publicClient.getContractEvents({
         address: escrow,
         abi: askPayEscrowAbi,
-        eventName: 'Deposited',
         fromBlock: from,
         toBlock: to,
       });
-      return logs.flatMap((log) => (log.args.qid ? [log.args.qid] : []));
+      return logs.flatMap((log) => toChainEvent(log) ?? []);
     },
 
     latestBlock: () => publicClient.getBlockNumber(),
+
+    lawRootOf: (lawId) => read<Hex>('lawRoot', [lawId]),
+
+    providerBalance: () => publicClient.getBalance({ address: account.address }),
   };
 
   function call(functionName: string, args: readonly unknown[]): ContractCall {
@@ -328,4 +347,55 @@ function decodeEvent(logs: readonly Log[], escrow: Address, qid: Hex): SettleEve
     }
   }
   return undefined;
+}
+
+// The four events the indexer keeps. Config events (ProviderSet, ...) and logs still pending are
+// left out: nothing reads them, and a pending log has no tx hash to key it by.
+function toChainEvent(log: Log & { eventName?: string; args?: unknown }): ChainEvent | undefined {
+  const { transactionHash, logIndex, blockNumber } = log;
+  if (transactionHash === null || logIndex === null || blockNumber === null) return undefined;
+  const args = (log.args ?? {}) as Record<string, unknown>;
+  const text = (key: string) => String(args[key]).toLowerCase();
+  const at = { txHash: transactionHash, logIndex, blockNumber: Number(blockNumber) };
+  switch (log.eventName) {
+    case 'Deposited':
+      return {
+        ...at,
+        name: 'Deposited',
+        qid: text('qid') as Hex,
+        args: { payer: text('payer'), amount: text('amount'), deadline: text('deadline') },
+      };
+    case 'Paid':
+      return {
+        ...at,
+        name: 'Paid',
+        qid: text('qid') as Hex,
+        args: {
+          provider: text('provider'),
+          amount: text('amount'),
+          answerHash: text('answerHash'),
+          citationsHash: text('citationsHash'),
+        },
+      };
+    case 'Refunded':
+      return {
+        ...at,
+        name: 'Refunded',
+        qid: text('qid') as Hex,
+        args: {
+          payer: text('payer'),
+          amount: text('amount'),
+          reason: REFUND_REASON_BY_INDEX[Number(args.reason)] ?? 'UNKNOWN',
+        },
+      };
+    case 'LawRootSet':
+      return {
+        ...at,
+        name: 'LawRootSet',
+        qid: null,
+        args: { lawId: text('lawId'), root: text('root') },
+      };
+    default:
+      return undefined;
+  }
 }
