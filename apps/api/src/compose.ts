@@ -12,8 +12,11 @@ import { createAskService, type AskService } from './modules/ask/ask.service.js'
 import { createInflight, type AskContext } from './modules/ask/ask.context.js';
 import { createPipeline, type Pipeline } from './modules/ask/ask.pipeline.js';
 import { createRecovery, type Recovery } from './modules/ask/ask.recovery.js';
+import { createVerifier } from './modules/ask/ask.verify.js';
 import { createCheckerService, type VerdictSigner } from './modules/checker/checker.service.js';
 import type { CorpusService } from './modules/corpus/corpus.service.js';
+import { createHistoryService, type HistoryService } from './modules/history/history.service.js';
+import { createIndexer, type Indexer } from './modules/indexer/indexer.service.js';
 import type { PaymentChain } from './modules/payment/payment.service.js';
 import { createRetrieval } from './modules/retrieval/retrieval.service.js';
 
@@ -26,6 +29,9 @@ export interface ComposeDeps {
   // The checker's account: a different key from the provider's (T-04).
   checkerSigner: VerdictSigner;
   corpus: CorpusService;
+  // Outcome of the last LLM call, for /health (it never calls the model itself).
+  llmStatus?: () => 'ok' | 'down';
+  evalPath?: string;
   // contracts/deployments/fuji.json
   deploymentBlock: bigint;
   now?: () => number;
@@ -39,8 +45,10 @@ export interface ComposeDeps {
 
 export interface Composed {
   askService: AskService;
+  historyService: HistoryService;
   pipeline: Pipeline;
   recovery: Recovery;
+  indexer: Indexer;
 }
 
 export function compose(deps: ComposeDeps): Composed {
@@ -60,6 +68,7 @@ export function compose(deps: ComposeDeps): Composed {
     escrow: chain.escrow,
     corpus: corpus.docs(),
   });
+  const verifier = createVerifier({ chain, corpus, logger });
   const pipeline = createPipeline({
     ctx,
     answer: createAnswerService({ llm, logger }),
@@ -67,11 +76,22 @@ export function compose(deps: ComposeDeps): Composed {
     corpus,
     retrieve: createRetrieval(corpus.docs()),
     demoFakeCitation: deps.config.demoFakeCitation,
+    onPaid: verifier.remember,
   });
   const recovery = createRecovery({
     ctx,
     pipeline,
+    intervalMs: deps.sweepIntervalMs ?? SWEEP_INTERVAL_MS,
+  });
+  const indexer = createIndexer({
+    store,
+    chain,
+    logger,
+    now: ctx.now,
     deploymentBlock: deps.deploymentBlock,
+    // §5.6 F and A6: the indexer finds the logs, the ask module decides what each one means.
+    onDeposited: recovery.onDeposited,
+    onClosed: pipeline.recordClosed,
     intervalMs: deps.sweepIntervalMs ?? SWEEP_INTERVAL_MS,
     ...(deps.scanChunk ? { scanChunk: deps.scanChunk } : {}),
     ...(deps.lookbackBlocks ? { lookbackBlocks: deps.lookbackBlocks } : {}),
@@ -82,8 +102,20 @@ export function compose(deps: ComposeDeps): Composed {
     pipeline,
     corpus,
     config: deps.config,
+    verifier,
+    chainViews: indexer.viewsOf,
     ...(deps.requestWaitMs !== undefined ? { requestWaitMs: deps.requestWaitMs } : {}),
     ...(deps.randomSalt ? { randomSalt: deps.randomSalt } : {}),
   });
-  return { askService, pipeline, recovery };
+  const historyService = createHistoryService({
+    chain,
+    corpus,
+    indexer,
+    ask: askService,
+    logger,
+    now: ctx.now,
+    llmStatus: deps.llmStatus ?? (() => 'ok'),
+    ...(deps.evalPath ? { evalPath: deps.evalPath } : {}),
+  });
+  return { askService, historyService, pipeline, recovery, indexer };
 }

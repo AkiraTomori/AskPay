@@ -50,7 +50,7 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | `DATABASE_PATH` | `./data/askpay.sqlite` | Khi deploy: trỏ vào thư mục mount của ổ đĩa lưu bền (Render disk hoặc volume của Railway), ví dụ `/var/data/askpay.sqlite`. Không để trên ổ đĩa tạm (system-design T-14). |
 | `DEMO_FAKE_CITATION` | `false` | Chỉ bật khi quay demo bước 4 |
 | `LOG_RANGE_BLOCKS` | `100` | Số block tối đa cho một lần `eth_getLogs`. RPC công khai Fuji chỉ cho 100; RPC tốt hơn thì nâng lên |
-| `SCAN_LOOKBACK_BLOCKS` | `43200` | Khi chưa có checkpoint (DB mới hoặc mất DB): quét lùi bao nhiêu block tìm deposit lạc (~1 block mỗi 2 giây, nên 43200 là 24 giờ). Owner chốt giữ 24 giờ (14/11/2026, xem system-design §5.6 F) |
+| `SCAN_LOOKBACK_BLOCKS` | `43200` | Khi chưa có checkpoint (DB mới hoặc mất DB): quét lùi bao nhiêu block tìm deposit lạc (~1 block mỗi 2 giây, nên 43200 là 24 giờ). Mặc định giữ 24 giờ (owner chốt 14/11/2026, xem system-design §5.6 F). Lần chạy đầu của DB demo đặt giá trị này đủ lớn để chạm `deploymentBlock` (61046807) và chạy sớm (owner chốt 15/11/2026) |
 | `CORPUS_PATH` | file trong `packages/corpus/data` | Tuỳ chọn: file corpus khác |
 | `PORT` | `4000` | |
 

@@ -4,7 +4,7 @@
 // a 60-second wait that runs out, never cancels it.
 import { randomBytes } from 'node:crypto';
 import { encodeAbiParameters, keccak256, toBytes, toHex, type Hex } from 'viem';
-import type { AskAccepted, QuestionResult } from '@askpay/shared/api';
+import type { AskAccepted, QuestionListItem, QuestionResult } from '@askpay/shared/api';
 import {
   FUJI_NETWORK,
   decodeHeader,
@@ -16,6 +16,7 @@ import {
 import { AppError } from '../../shared/errors.js';
 import { REQUEST_WAIT_MS, type Config } from '../../shared/config.js';
 import type { CorpusService } from '../corpus/corpus.service.js';
+import type { ChainView } from '../indexer/indexer.service.js';
 import {
   buildPaymentRequired,
   ensurePayerCanPay,
@@ -33,18 +34,23 @@ import type { Pipeline } from './ask.pipeline.js';
 import {
   findQuestion,
   insertQuote,
+  listStarted,
   patchQuestion,
   transitionStage,
   type QuestionRow,
   type Stage,
 } from './ask.repository.js';
-import { toQuestionResult } from './ask.result.js';
+import { toListItem, toQuestionResult } from './ask.result.js';
+import type { Verifier } from './ask.verify.js';
 
 export interface AskDeps {
   ctx: AskContext;
   pipeline: Pipeline;
   corpus: CorpusService;
   config: Pick<Config, 'priceUnits' | 'quoteTtlSeconds'>;
+  verifier: Verifier;
+  // What the indexer has read about these questions (P2). Reads the database only.
+  chainViews: (qids: readonly Hex[]) => Map<Hex, ChainView>;
   requestWaitMs?: number; // injectable so tests need not wait a minute
   randomSalt?: () => Hex; // 16 bytes; injectable so tests get fixed qids
 }
@@ -61,6 +67,35 @@ export interface AskService {
     qid: Hex;
     paymentHeader: string | undefined;
   }): Promise<PaymentAccepted>;
+  // GET /questions/:qid (api.md §4). Throws QUESTION_NOT_FOUND.
+  getResult(qid: string): Promise<QuestionResult>;
+  // GET /questions (api.md §5): started questions only, newest first.
+  listQuestions(query: { limit: number; cursor?: string | undefined }): {
+    items: QuestionListItem[];
+    nextCursor?: string;
+  };
+}
+
+const encodeCursor = (row: QuestionRow) =>
+  Buffer.from(JSON.stringify({ c: row.createdAt, q: row.qid })).toString('base64url');
+
+function decodeCursor(cursor: string): { createdAt: number; qid: string } {
+  try {
+    const parsed: unknown = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'c' in parsed &&
+      'q' in parsed &&
+      Number.isInteger(parsed.c) &&
+      typeof parsed.q === 'string'
+    ) {
+      return { createdAt: parsed.c as number, qid: parsed.q };
+    }
+  } catch {
+    // falls through: a cursor that does not decode is a bad request
+  }
+  throw new AppError('VALIDATION_FAILED', { issues: [{ path: 'cursor', message: 'invalid' }] });
 }
 
 // system-design §4.2: qid = keccak256(abi.encode(keccak256(utf8(question)), salt16)).
@@ -75,7 +110,16 @@ export function createAskService(deps: AskDeps): AskService {
   const { store, chain, logger, now } = ctx;
   const randomSalt = deps.randomSalt ?? (() => toHex(randomBytes(16)));
   const waitMs = deps.requestWaitMs ?? REQUEST_WAIT_MS;
-  const resultOf = (row: QuestionRow) => toQuestionResult(row, corpus);
+  // The one place a row becomes an API result: the chain's view and the receipt-based verification
+  // are looked up here, so every caller (200, 409 replay, GET) shows the same thing.
+  async function resultOf(row: QuestionRow): Promise<QuestionResult> {
+    const known = deps.chainViews([row.qid]).get(row.qid);
+    const verified =
+      row.stage === 'PAID' || known?.closed?.name === 'Paid'
+        ? await deps.verifier.verify(row, known?.closed?.txHash ?? row.settleTx ?? undefined)
+        : false;
+    return toQuestionResult(row, corpus, { view: known, verified, nowMs: now() });
+  }
 
   function requestQuote(question: string): PaymentRequired {
     const questionHash = keccak256(toBytes(question));
@@ -105,7 +149,7 @@ export function createAskService(deps: AskDeps): AskService {
     if (row.stage === 'EXPIRED') throw new AppError('QUESTION_NOT_FOUND');
     if (row.stage !== 'QUOTED') {
       // A replay or a parallel twin: no second deposit, and the caller sees where it stands.
-      throw new AppError('QUESTION_ALREADY_SETTLED', resultOf(row));
+      throw new AppError('QUESTION_ALREADY_SETTLED', await resultOf(row));
     }
     if (now() >= row.quoteExpiresAt) {
       transitionStage(store, row.qid, 'QUOTED', 'EXPIRED', now());
@@ -137,7 +181,7 @@ export function createAskService(deps: AskDeps): AskService {
     // 5. Win the stage. Only the winner may send a deposit.
     if (!transitionStage(store, row.qid, 'QUOTED', 'DEPOSITING', now())) {
       const current = findQuestion(store, row.qid);
-      throw new AppError('QUESTION_ALREADY_SETTLED', current ? resultOf(current) : undefined);
+      throw new AppError('QUESTION_ALREADY_SETTLED', current ? await resultOf(current) : undefined);
     }
     // Held for the whole deposit, so recovery does not reconcile a deposit that is in progress.
     ctx.inflight.add(row.qid);
@@ -261,7 +305,7 @@ export function createAskService(deps: AskDeps): AskService {
     if (current && (current.stage === 'PAID' || current.stage === 'REFUNDED')) {
       return {
         status: 200,
-        body: resultOf(current),
+        body: await resultOf(current),
         paymentResponse: {
           success: true,
           network: FUJI_NETWORK,
@@ -285,7 +329,26 @@ export function createAskService(deps: AskDeps): AskService {
     };
   }
 
-  return { requestQuote, submitPayment };
+  async function getResult(qid: string): Promise<QuestionResult> {
+    const row = findQuestion(store, qid);
+    if (!row) throw new AppError('QUESTION_NOT_FOUND');
+    return resultOf(row);
+  }
+
+  function listQuestions(query: { limit: number; cursor?: string | undefined }) {
+    const after = query.cursor === undefined ? undefined : decodeCursor(query.cursor);
+    // One more than asked, to know whether another page exists.
+    const rows = listStarted(store, query.limit + 1, after);
+    const page = rows.slice(0, query.limit);
+    const views = deps.chainViews(page.map((row) => row.qid));
+    const last = page.at(-1);
+    return {
+      items: page.map((row) => toListItem(row, views.get(row.qid), now())),
+      ...(rows.length > query.limit && last ? { nextCursor: encodeCursor(last) } : {}),
+    };
+  }
+
+  return { requestQuote, submitPayment, getResult, listQuestions };
 }
 
 function quoteOf(qid: Hex, price: bigint, quoteExpiresAt: number): Quote {

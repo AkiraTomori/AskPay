@@ -37,8 +37,8 @@ describe('AP-05-AC01 a verified answer is settled as Paid', () => {
     expect(response.body.data.citations).toHaveLength(1);
     expect(response.body.data.citations[0]).toMatchObject({ dieu: 25, khoan: 2 });
     expect(response.body.data.citations[0].text).toContain('Không quá 60 ngày');
-    // A5 does not claim on-chain verification: that needs the RPC receipt check of A6.
-    expect(response.body.data.citations[0].verifiedOnChain).toBe(false);
+    // The Paid log was read from the receipt and the content hashes to it (A6, AP-07-AC02).
+    expect(response.body.data.citations[0].verifiedOnChain).toBe(true);
     expect(sentFns(test.chain)).toEqual(['deposit', 'settle']);
   });
 

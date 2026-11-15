@@ -159,7 +159,7 @@ Chỉnh prompt bước trả lời (chỉ trích Khoản trực tiếp trả l�
 - Fork dùng khoá tạm và state sao chép; Fuji thật đã chạy sau đó (xem mục dưới).
 - Mẫu nhỏ cho hai phép đo prompt (2 cặp × 1 lần với judge; 8 câu × 2 lần với trích thừa), một model.
 - `verifiedOnChain` luôn `false` (thuộc A6). Chưa có `GET /questions/:qid`, nên câu quá 60 giây phải chờ A6 mới poll được.
-- **AP-05-AC08 chỉ đạt cho deposit trong 24 giờ gần nhất (owner chốt giữ 24 giờ, 14/11/2026):** deposit cũ hơn thế mà server mất DB thì không được server tự hoàn; người hỏi tự `claimRefund`. Đã cân nhắc quét đầy đủ từ block triển khai (hiện ~190 lần đọc, thêm ~430 mỗi ngày) và RPC riêng có dải log rộng; owner chưa có URL RPC riêng nên giữ như hiện tại.
+- **AP-05-AC08 chỉ đạt cho deposit trong 24 giờ gần nhất (owner chốt giữ 24 giờ, 14/11/2026):** deposit cũ hơn thế mà server mất DB thì không được server tự hoàn; người hỏi tự `claimRefund`. Đã cân nhắc quét đầy đủ từ block triển khai (hiện ~190 lần đọc, thêm ~430 mỗi ngày) và RPC riêng có dải log rộng; owner chưa có URL RPC riêng nên giữ như hiện tại. Từ 15/11/2026: mặc định vẫn 24 giờ, nhưng lần chạy đầu của DB demo quét tới block triển khai (system-design §5.6 F).
 - **Mặc định quét chưa từng chạy với RPC công khai thật.** Script e2e đặt `SCAN_LOOKBACK_BLOCKS=1500` cho cả fork và Fuji. Một lần triển khai mới với mặc định gửi ~432 lần `getLogs`, nghỉ 1 giây giữa các lần (~7 phút), mỗi lượt tối đa 40 lần. Cùng endpoint này đã chặn IP hai lần trong ngày.
 - Câu hỏi có thể ép **bước trả lời** (không phải judge) trả lời không có trích dẫn: câu bị hoàn tiền `NO_CITATION` nhưng câu trả lời của model vẫn hiện (Q-04). Chưa đo.
 - Deposit chưa thay thế được sau khi khởi động lại (chữ ký chưa lưu): chờ tới khi uỷ quyền hết hạn.

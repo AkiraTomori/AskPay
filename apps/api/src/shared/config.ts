@@ -19,6 +19,9 @@ export const LLM_CALL_TIMEOUT_MS = 20_000;
 export const REQUEST_WAIT_MS = 60_000;
 // How often unresolved questions are reconciled with the chain while the server runs (§5.6 D, F).
 export const SWEEP_INTERVAL_MS = 15_000;
+// How long /health, /stats and the first page of /questions are reused (shared/ttl-cache.ts). Fixed,
+// not env: it is what keeps a burst of page views from becoming a burst of RPC calls.
+export const READ_CACHE_TTL_MS = 5_000;
 
 const privateKey = z
   .string()
@@ -45,6 +48,12 @@ const envSchema = z.object({
   DATABASE_PATH: z.string().min(1).default('./data/askpay.sqlite'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(20),
+  // The read endpoints (GET /questions, /stats, /corpus, /health). A page polling one question every
+  // second is 60 a minute, so the default leaves room for that and for a dashboard on the same IP.
+  READ_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
+  // How many reverse proxies sit in front of the server (Render and Railway: 1). Without it every
+  // caller shares the proxy's IP, so one limit would count the whole world as one visitor.
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   // Required: without an LLM every question would be refunded after the payer already paid.
   LLM_PROVIDER: z.enum(['openrouter', 'groq']).default('openrouter'),
   LLM_API_KEY: z.string().min(1),
@@ -74,6 +83,8 @@ export interface Config {
   databasePath: string;
   port: number;
   rateLimitPerMinute: number;
+  readRateLimitPerMinute: number;
+  trustProxyHops: number;
   llm: LlmConfig;
   demoFakeCitation: boolean;
   corpusPath: string | undefined;
@@ -109,6 +120,8 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     databasePath: value.DATABASE_PATH,
     port: value.PORT,
     rateLimitPerMinute: value.RATE_LIMIT_PER_MINUTE,
+    readRateLimitPerMinute: value.READ_RATE_LIMIT_PER_MINUTE,
+    trustProxyHops: value.TRUST_PROXY_HOPS,
     llm: {
       provider: value.LLM_PROVIDER,
       apiKey: value.LLM_API_KEY,

@@ -44,6 +44,31 @@ export interface LlmClient {
   complete(request: LlmRequest): Promise<string>;
 }
 
+// Remembers whether the last call worked, for /health. Asking the model "are you there" on every
+// ping would spend the daily quota (Groq: ~1,000 requests) on whoever polls; real traffic already
+// tells. With no call yet nothing has failed, so it reads ok.
+export function trackLlmHealth(client: LlmClient): {
+  client: LlmClient;
+  status: () => 'ok' | 'down';
+} {
+  let status: 'ok' | 'down' = 'ok';
+  return {
+    client: {
+      async complete(request) {
+        try {
+          const reply = await client.complete(request);
+          status = 'ok';
+          return reply;
+        } catch (error) {
+          status = 'down';
+          throw error;
+        }
+      },
+    },
+    status: () => status,
+  };
+}
+
 export function createLlmClient(config: LlmConfig, fetchImpl: typeof fetch = fetch): LlmClient {
   const url = `${BASE_URLS[config.provider]}/chat/completions`;
 

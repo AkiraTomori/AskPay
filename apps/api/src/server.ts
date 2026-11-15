@@ -4,7 +4,7 @@ import { createApp } from './app.js';
 import { compose } from './compose.js';
 import { createChainClients } from './shared/chain.js';
 import { loadConfig } from './shared/config.js';
-import { createLlmClient } from './shared/llm.js';
+import { createLlmClient, trackLlmHealth } from './shared/llm.js';
 import { createLogger } from './shared/logger.js';
 import { openStore } from './shared/store.js';
 import { createTxQueue } from './shared/tx-queue.js';
@@ -17,6 +17,7 @@ const store = openStore(config.databasePath);
 const corpus = loadCorpus(config.corpusPath ?? DEFAULT_CORPUS_PATH);
 const clients = createChainClients(config);
 const checker = privateKeyToAccount(config.checkerPrivateKey);
+const llm = trackLlmHealth(createLlmClient(config.llm));
 
 // Refuses to start unless the escrow's provider and checker are the two keys this process holds and
 // its registered corpus root is the one rebuilt here: any mismatch would only show up after a payer
@@ -27,12 +28,13 @@ const chain = await createPaymentChain(clients, createTxQueue(clients), {
   lawRoot: corpus.root,
 });
 
-const { askService, recovery } = compose({
+const { askService, historyService, recovery, indexer } = compose({
   config,
   store,
   chain,
   logger,
-  llm: createLlmClient(config.llm),
+  llm: llm.client,
+  llmStatus: llm.status,
   checkerSigner: checker,
   corpus,
   deploymentBlock: BigInt(fujiDeployment.deploymentBlock),
@@ -46,11 +48,15 @@ await recovery.startup();
 
 const app = createApp({
   askService,
+  historyService,
   rateLimitPerMinute: config.rateLimitPerMinute,
+  readRateLimitPerMinute: config.readRateLimitPerMinute,
+  trustProxyHops: config.trustProxyHops,
   logger,
 });
 app.listen(config.port, () => {
   recovery.start();
+  indexer.start();
   // Addresses are public; the keys are never logged.
   logger.info(
     {

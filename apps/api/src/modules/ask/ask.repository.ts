@@ -217,18 +217,22 @@ export function patchQuestion(
   return Number(result.changes) === 1;
 }
 
-// The last block whose Deposited logs have all been handled (system-design §7, indexer_checkpoint).
-export function readCheckpoint(store: Store): bigint | undefined {
-  const row = store.prepare('SELECT last_block FROM indexer_checkpoint WHERE id = 1').get() as
-    { last_block: number } | undefined;
-  return row ? BigInt(row.last_block) : undefined;
-}
-
-export function writeCheckpoint(store: Store, block: bigint): void {
-  store
+// Questions whose money is (or may be) in escrow, newest first: everything except a quote that was
+// never paid. `after` is the last row of the previous page; created_at alone is not unique.
+export function listStarted(
+  store: Store,
+  limit: number,
+  after?: { createdAt: number; qid: string },
+): QuestionRow[] {
+  const keyset = after ? 'AND (created_at < ? OR (created_at = ? AND qid < ?))' : '';
+  const raws = store
     .prepare(
-      `INSERT INTO indexer_checkpoint (id, last_block) VALUES (1, ?)
-       ON CONFLICT (id) DO UPDATE SET last_block = excluded.last_block`,
+      `SELECT * FROM questions WHERE stage NOT IN ('QUOTED', 'EXPIRED') ${keyset}
+        ORDER BY created_at DESC, qid DESC LIMIT ?`,
     )
-    .run(Number(block));
+    .all(
+      ...(after ? [after.createdAt, after.createdAt, after.qid] : []),
+      limit,
+    ) as unknown as RawRow[];
+  return raws.map(toRow);
 }

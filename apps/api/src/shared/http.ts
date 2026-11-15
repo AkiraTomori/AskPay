@@ -16,6 +16,11 @@ export function parseWith<T extends z.ZodType>(schema: T, input: unknown): z.out
   return parsed.data;
 }
 
-export function sendData(res: Response, data: unknown, status = 200): void {
-  res.status(status).json({ data });
+export function sendData(
+  res: Response,
+  data: unknown,
+  status = 200,
+  meta?: Record<string, unknown>,
+): void {
+  res.status(status).json({ data, ...(meta ? { meta } : {}) });
 }

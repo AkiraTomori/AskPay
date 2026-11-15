@@ -32,7 +32,6 @@ apps/api/src/
     history/             # GET /questions, /stats, /corpus, /health
       history.routes.ts
       history.service.ts
-      history.repository.ts   # SQLite
     indexer/             # poll getLogs → chain_events (T-09)
       indexer.service.ts
       indexer.repository.ts

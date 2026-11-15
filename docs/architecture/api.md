@@ -26,10 +26,16 @@
 | 404 | `QUESTION_NOT_FOUND` | Không có `qid`, hoặc báo giá đã hết hạn |
 | 409 | `QUESTION_ALREADY_SETTLED` | Gửi lại thanh toán cho `qid` đã giữ tiền hoặc đã chốt; `details` chứa kết quả hiện tại |
 | 409 | `QUESTION_MISMATCH` | Nội dung câu hỏi khác câu đã báo giá cho `qid` |
-| 429 | `RATE_LIMITED` | Quá 20 báo giá mỗi phút mỗi IP (đề xuất) |
+| 429 | `RATE_LIMITED` | Quá 20 báo giá mỗi phút mỗi IP (`RATE_LIMIT_PER_MINUTE`); hoặc quá 120 lần đọc mỗi phút mỗi IP ở các endpoint `GET` (`READ_RATE_LIMIT_PER_MINUTE`). Hai giới hạn đếm riêng. |
 | 502 | `LLM_UNAVAILABLE` | Chỉ ở `/health`; trong `/ask`, lỗi LLM được chuyển thành hoàn tiền |
 | 503 | `CHAIN_UNAVAILABLE` | **Trước khi** giữ tiền: RPC không trả lời, ví provider thiếu AVAX, hoặc hàng đợi tx đang lỗi. Sau khi đã giữ tiền thì không dùng mã này. |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước |
+
+### Giới hạn tần suất và cache của các endpoint đọc
+
+- Mọi `GET` dưới `/api` (`/questions`, `/questions/:qid`, `/stats`, `/corpus`, `/health`) dùng chung một giới hạn mỗi IP, mặc định **120 lần mỗi phút**. Trang kết quả poll một câu mỗi giây (60 lần mỗi phút) nên vẫn nằm trong giới hạn. Header `RateLimit` theo draft-7.
+- Sau reverse proxy (Render, Railway) phải đặt `TRUST_PROXY_HOPS=1`. Không đặt thì mọi người gọi cùng một IP (của proxy) và chung một giới hạn.
+- `/health`, `/stats` và **trang đầu** của `/questions` (không có `cursor`) được giữ **5 giây** trong bộ nhớ, và các request đến cùng lúc dùng chung một lần tải. Số liệu có thể cũ tối đa 5 giây. Câu trả lời `/health` báo RPC lỗi (503) **không** được giữ, nên khi RPC hồi phục thì request kế tiếp thấy ngay. Trang có `cursor`, `/questions/:qid` và `/corpus` không qua cache này (`/corpus` chỉ đọc root từ chain một lần).
 
 ### Không có endpoint (cố ý)
 
@@ -203,9 +209,11 @@ Câu bị hoàn tiền vẫn trả `200`, với `status: "REFUNDED"` và `reason
 **Trạng thái triển khai (A5):** `POST /api/ask` chạy trọn luồng: giữ tiền, trả lời, kiểm tra, chốt.
 - Request chờ tối đa 60 giây (`REQUEST_WAIT_MS`). Chốt xong trong thời gian đó thì trả `200` với kết quả (Paid hoặc Refunded, kèm `settleTransaction` ở `PAYMENT-RESPONSE`). Quá 60 giây thì trả `202 { qid, stage }` và pipeline vẫn chạy tiếp.
 - Đã giữ tiền nhưng chưa biết kết quả deposit: `202 { stage: "DEPOSITING" }`. Server đối chiếu tiếp theo nonce, không cần request.
-- `verifiedOnChain` luôn là `false` ở A5. Việc đọc receipt `Paid` qua RPC và tính lại hash thuộc A6.
-- `GET /api/questions/:qid` thuộc A6, nên lúc này client chỉ biết kết quả qua `200` của chính request hỏi. Câu quá 60 giây phải đợi A6 để poll.
 - Khi khởi động, server từ chối chạy nếu: khoá provider hoặc khoá checker không phải `provider()` và `checker()` trên chain, hoặc root corpus dựng lại khác `lawRoot` đã đăng ký.
+
+**Trạng thái triển khai (A6):** `GET /api/questions/:qid`, `/questions`, `/stats`, `/corpus`, `/health` đã có, cùng indexer đọc event vào `chain_events`.
+- `verifiedOnChain` do server tính theo bảng trên, **mỗi lần** trả kết quả: đọc receipt của tx chốt qua RPC (kiểm địa chỉ escrow và `qid`), rồi tính lại `answerHash` từ `answer` và `citationsHash` từ `citations[]` (`quoteHash` băm lại từ `quote`, không đọc cột đã lưu). Chỉ **sự kiện** `Paid` được cache (theo `qid` và tx), không cache kết luận, nên sửa DB sau lần đọc đầu thì dấu tắt. Một thẻ chỉ có dấu khi `status` là `PAID`.
+- `deadline` có trong kết quả khi indexer đã thấy `Deposited` của câu đó.
 
 Chi tiết từng đường lỗi: [system-design §5.6](./system-design.md).
 
@@ -213,12 +221,14 @@ Chi tiết từng đường lỗi: [system-design §5.6](./system-design.md).
 
 Trả cùng hình dạng `data` như §3.2. Câu ở trạng thái `QUOTED` hoặc `EXPIRED` chỉ có `qid`, `question`, `stage`.
 
+`qid` sai định dạng hoặc không có thì `404 QUESTION_NOT_FOUND`. Chữ hoa trong hex được chấp nhận.
+
 Các giá trị `stage` khi đang xử lý: `DEPOSITING`, `ANSWERING`, `CHECKING`, `SETTLING`. Web poll mỗi 1 giây cho tới khi `status` thuộc `PAID`, `REFUNDED`.
 
 `status` là trạng thái tiền, lấy theo P2:
 - `PENDING`: chưa có event.
-- `PAID` / `REFUNDED`: lấy từ event on-chain.
-- `CLAIMABLE`: còn `Open` nhưng đã quá `deadline`; web hiện nút "Nhận lại tiền".
+- `PAID` / `REFUNDED`: lấy từ event on-chain (`chain_events`, do indexer đọc). Có event thì event thắng `stage` trong DB: `status`, `stage`, `reason`, `amount`, `tx.settle` đều theo event (AP-08-AC02). `tx.settle` của câu người hỏi tự `claimRefund` là tx của lệnh rút đó.
+- `CLAIMABLE`: chưa có event đóng, indexer đã thấy `Deposited` và `deadline` (giây) đã qua theo đồng hồ server; web hiện nút "Nhận lại tiền" (web vẫn mô phỏng `claimRefund` trước khi mở ví, §5.6 E).
 
 ## 5. `GET /api/questions?limit=20&cursor=<base64>`
 
@@ -229,7 +239,7 @@ Các giá trị `stage` khi đang xử lý: `DEPOSITING`, `ANSWERING`, `CHECKING
 }
 ```
 
-Sắp xếp `createdAt` giảm dần. Chỉ liệt kê câu đã giữ tiền (bỏ `QUOTED`, `EXPIRED`).
+Sắp xếp `createdAt` giảm dần, cùng `createdAt` thì theo `qid` giảm dần, nên cursor không bỏ sót hay lặp. `limit` từ 1 đến 100 (mặc định 20). `meta.nextCursor` chỉ có khi còn trang sau. Cursor hỏng hoặc `limit` ngoài khoảng thì `400 VALIDATION_FAILED`. Chỉ liệt kê câu đã giữ tiền (bỏ `QUOTED`, `EXPIRED`). `status` và `reason` theo event on-chain nếu indexer đã đọc (§4); văn bản câu hỏi chỉ có trong DB, nên câu còn trên chain mà DB mất thì không có dòng ở đây (nhưng vẫn nằm trong `/stats`).
 
 ## 6. `GET /api/stats`
 
@@ -246,8 +256,10 @@ Sắp xếp `createdAt` giảm dần. Chỉ liệt kê câu đã giữ tiền (b
 }
 ```
 
-- `eval` đọc từ file `eval/results/latest.json` (AP-09-AC03). Chưa chạy eval thì `eval: null`.
-- Các số khác tính từ `chain_events` (AP-08-AC02).
+- `eval` đọc từ file `eval/results/latest.json` (AP-09-AC03). Chưa chạy eval, file thiếu hoặc sai định dạng thì `eval: null`.
+- Các số khác tính từ `chain_events` (AP-08-AC02), không đọc bảng `questions`.
+- `questions` là số `qid` có event `Deposited`; `paid` và `refunded` là số `qid` có `Paid` và `Refunded`. `refundRate = refunded / (paid + refunded)`: tỉ lệ trên những câu đã chốt, câu đang xử lý chưa tính. `providerRevenue` là tổng `amount` của các event `Paid` (cộng bằng BigInt). `refundsByReason` luôn có đủ năm lý do, giá trị 0 nếu chưa có.
+- `lastIndexedBlock` là checkpoint của indexer. Số liệu chỉ phủ các block indexer đã đọc: để khớp Snowtrace cho toàn bộ escrow, `SCAN_LOOKBACK_BLOCKS` phải chạm `deploymentBlock` ở lần chạy đầu của một DB mới (system-design §5.6 F).
 
 ## 7. `GET /api/corpus`
 
@@ -262,7 +274,7 @@ Sắp xếp `createdAt` giảm dần. Chỉ liệt kê câu đã giữ tiền (b
 }
 ```
 
-Số `khoanCount` ở trên chỉ là ví dụ; giá trị thật lấy từ kết quả parse.
+Số `khoanCount` ở trên chỉ là ví dụ; giá trị thật lấy từ kết quả parse. `onChainRoot` đọc trực tiếp từ escrow mỗi lần gọi; RPC lỗi thì `503 CHAIN_UNAVAILABLE`.
 
 ## 8. `GET /api/health`
 
@@ -270,7 +282,10 @@ Số `khoanCount` ở trên chỉ là ví dụ; giá trị thật lấy từ k�
 { "data": { "ok": true, "rpc": "ok", "llm": "ok", "providerBalanceAvax": "1.42", "lowBalance": false, "indexerLagBlocks": 3 } }
 ```
 
-`ok = false` (HTTP 503) khi RPC không trả lời. Số dư dưới 0,2 AVAX thì `lowBalance: true`, nhưng không chặn.
+- `rpc: "down"` kèm HTTP 503 khi RPC không trả lời. Hàng đợi tx đang lỗi (§5.6 C) thì `ok: false` nhưng vẫn HTTP 200.
+- Số dư dưới 0,2 AVAX thì `lowBalance: true`, nhưng không chặn. `providerBalanceAvax` hiện hai chữ số thập phân (cắt, không làm tròn).
+- `llm` là kết quả của **lần gọi LLM gần nhất** trong process này, chưa có lần nào thì `ok`. `/health` không bao giờ gọi mô hình, để người ping không ăn hết hạn mức mỗi ngày của Groq.
+- `indexerLagBlocks` là số block indexer còn phải đọc; trước lần quét đầu tiên là cả cửa sổ lùi.
 
 ## 9. Luồng chính
 
