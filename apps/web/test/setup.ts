@@ -4,6 +4,7 @@ import { afterEach, vi } from 'vitest';
 
 afterEach(() => {
   cleanup();
+  routerPush.mockClear();
   vi.unstubAllGlobals();
 });
 
@@ -17,4 +18,9 @@ HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
   this.dispatchEvent(new Event('close'));
 };
 
-vi.mock('next/navigation', () => ({ usePathname: () => '/' }));
+// One shared spy so tests can assert navigation (read it with `useRouter().push`).
+const routerPush = vi.hoisted(() => vi.fn());
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/',
+  useRouter: () => ({ push: routerPush, replace: vi.fn(), back: vi.fn(), refresh: vi.fn() }),
+}));

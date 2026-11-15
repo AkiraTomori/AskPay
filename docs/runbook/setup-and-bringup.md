@@ -28,7 +28,7 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 - **Thực tế deploy 14/11/2026 (K3):** do thiếu AVAX ở ví riêng, owner và provider dùng chung một ví `0x07197328B09cc40D6ecE53e84413495DA20FF008` (keystore `askpay-main`); checker là `0x5c6EB80078D8492AeBd65114f7b71aD1F7536AA8`. Hợp đồng cho phép owner trùng provider. Muốn tách lại thì owner gọi `setProvider` (một giao dịch).
 - Nhập khoá vào keystore của Foundry: `cast wallet import askpay-owner --interactive`. Khoá không xuất hiện trên dòng lệnh.
 - AVAX Fuji: faucet của Core (`core.app/tools/testnet-faucet`) hoặc faucet trên team1vn.xyz.
-- USDC Fuji: `faucet.circle.com`, chọn Avalanche Fuji.
+- USDC Fuji: `faucet.circle.com`, chọn Avalanche Fuji. Dán địa chỉ **ví người hỏi** (tài khoản Core đang kết nối với web), không dán địa chỉ escrow, provider hay checker: USDC gửi nhầm vào escrow không lấy lại được (contract không có hàm rút).
 
 ## 3. Biến môi trường
 
@@ -37,7 +37,7 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 | Biến | Ví dụ | Ghi chú |
 |---|---|---|
 | `CHAIN_ID` | `43113` | `config.ts` từ chối giá trị khác |
-| `RPC_URL` | `https://api.avax-test.network/ext/bc/C/rpc` | |
+| `RPC_URL` | `https://avalanche-fuji-c-chain-rpc.publicnode.com` | RPC công cộng của Avalanche (`https://api.avax-test.network/ext/bc/C/rpc`) có thể rate limit theo IP (Cloudflare 1015, HTTP 429). Đã gặp ngày 15/11/2026: API nhận kết quả `settle` chậm khoảng 1 phút dù chain đã xong sau 7 giây; đổi sang publicnode thì nhanh hơn (chưa đo lại). Dùng publicnode hoặc RPC có khoá API khi chạy thật |
 | `RPC_URL_FALLBACK` | RPC thứ hai | Tuỳ chọn |
 | `PROVIDER_PRIVATE_KEY` | — | **Chỉ ở đây**, không bao giờ log |
 | `CHECKER_PRIVATE_KEY` | — | Phải khác provider: `config.ts` từ chối nếu hai khoá cho cùng một địa chỉ (T-04). Địa chỉ của nó phải bằng `checker` trong `contracts/deployments/fuji.json`, nếu không `settle` revert `InvalidCheckerSignature` |
@@ -57,6 +57,9 @@ Tạo **ba ví riêng cho hackathon**. Không dùng ví chứa tài sản thật
 Không có biến env cho `settleCutoff` (60 giây) và `pipelineBudget` (120 giây). Đây là hằng số cố định trong `config.ts`, để môi trường deploy không lệch spec (system-design §5.6 B).
 
 `apps/web/.env.local`: `API_ORIGIN=http://localhost:4000` (cho rewrite), `NEXT_PUBLIC_CHAIN_ID=43113`.
+
+- `NEXT_PUBLIC_RPC_URL` (tuỳ chọn): RPC mà trình duyệt dùng để đọc số dư USDC. Không đặt thì web dùng publicnode (`https://avalanche-fuji-c-chain-rpc.publicnode.com`, mặc định trong `apps/web/src/lib/constants.ts`, đổi từ RPC công cộng của Avalanche vì RPC đó có thể rate limit như `RPC_URL` ở trên). Muốn dùng RPC khác (ví dụ có khoá API), đặt `NEXT_PUBLIC_RPC_URL` trong `.env.local`, không có dấu chấm cuối. Biến này nằm ở `apps/web/.env.local`, không phải `apps/api/.env`, và phải chạy lại `npm run dev:web` sau khi đổi.
+- `API_ORIGIN` được đọc lúc build: `next build` cố định đích của rewrite, nên đổi `API_ORIGIN` thì phải build lại trước khi `next start`.
 
 Địa chỉ contract **không** đặt trong env: lấy từ `contracts/deployments/fuji.json` qua `packages/shared`.
 
