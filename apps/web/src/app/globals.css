@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+/* Design system "Công Báo" §2: tokens are declared once, here. Light mode only in v1. */
+@theme {
+  --color-paper: #faf7f0;
+  --color-surface: #ffffff;
+  --color-ink: #1c1b19;
+  --color-ink-muted: #5c5a55;
+  --color-rule: #e4dfd3;
+  --color-seal: #7a1f1f;
+  --color-seal-ink: #ffffff;
+  --color-paid: #1f6f43;
+  --color-refund: #9a6200;
+  --color-pending: #1f4e8c;
+  --color-expired: #6b6b6b;
+  --color-error: #b42318;
+  --color-focus: #1f4e8c;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+@theme inline {
+  --font-sans: var(--font-be-vietnam), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-noto-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

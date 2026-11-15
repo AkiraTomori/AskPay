@@ -35,6 +35,10 @@ Khai báo một lần trong `apps/web/src/app/globals.css` (Tailwind 4 `@theme`)
 
 Mọi cặp chữ/nền đạt tương phản WCAG AA (≥ 4,5:1 cho chữ thường). Kiểm lại bằng công cụ khi cài.
 
+Hai quy tắc bổ sung (owner duyệt 15/11/2026, xem [w1-web-shell §6.4](../design/w1-web-shell.md)):
+- Chữ trên nền hổ phách nhạt (`refund` 12%) dùng `ink`, không dùng `refund` (4,07:1, không đạt AA).
+- Viền nút `secondary` và ô nhập dùng `ink-muted`, không dùng `rule` (1,24:1; WCAG 1.4.11 cần ≥ 3:1). `rule` chỉ cho đường kẻ trang trí.
+
 ### 2.2 Chữ
 
 | Token | Font | Dùng cho |
