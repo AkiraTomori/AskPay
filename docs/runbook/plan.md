@@ -62,7 +62,7 @@ Hành vi chi tiết: [`../spec/askpay-v1.md`](../spec/askpay-v1.md).
 | **16/11** | Web: ví, form hỏi, `useAsk`, trang kết quả | Hỏi được từ trình duyệt | W1, W2, W3 |
 | **17/11** | Dashboard, trang `/verify`, nút "Nhận lại tiền", xử lý lỗi | Đủ trạng thái trong [ui-pages.md](../product/ui-pages.md) | W4, W5 |
 | **18/11** | Bộ eval 50 câu + số liệu. (Buyer agent nếu kịp) | `eval/results/latest.json` | E1, (G1) |
-| **19/11** | Deploy web (Vercel) và API. README. **Đóng băng tính năng** | Link public chạy được | O1 |
+| **19/11** | README. **Đóng băng tính năng**. *Không deploy Vercel/Render (owner chốt 20/11, bản O1-lite; xem [design](../design/o1-deploy-readme.md))* | README đủ checklist §9; mọi link mở được ở ẩn danh | O1 |
 | **20/11** | Slide + quay video theo [`demo.md`](./demo.md) | Video 2–3 phút | O2, O3 |
 | **21/11** | Dự phòng. Kiểm mọi link. **Nộp trước 20:00** | Đã nộp | O4 |
 | 22–29/11 | Nếu vào top 10: tập demo, sửa lỗi nhỏ, chuẩn bị trả lời FAQ | — | — |

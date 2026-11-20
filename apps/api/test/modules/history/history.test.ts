@@ -29,7 +29,10 @@ async function populated(extra: Parameters<typeof createTestApp>[0] = {}) {
 
 describe('AP-08-AC01 /stats', () => {
   it('counts questions, paid, refunded, the refund rate and the revenue from chain events', async () => {
-    const { test } = await populated();
+    // A path that does not exist: this test is about the chain totals, so it must not depend on
+    // the real eval/results/latest.json committed in the repo.
+    const noEval = join(mkdtempSync(join(tmpdir(), 'askpay-eval-')), 'missing.json');
+    const { test } = await populated({ evalPath: noEval });
     const response = await test.api.get('/api/stats');
     expect(response.status).toBe(200);
     const stats = statsSchema.parse(response.body.data);
