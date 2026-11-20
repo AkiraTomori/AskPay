@@ -1,0 +1,10 @@
+{
+  "name": "@askpay/agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@askpay/shared": "0.0.0",
+    "viem": "2.57.19"
+  }
+}

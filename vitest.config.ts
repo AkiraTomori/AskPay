@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     projects: [
       {
-        test: { name: 'node', include: ['{apps/api,packages/*}/test/**/*.test.ts'] },
+        test: { name: 'node', include: ['{apps/api,apps/agent,packages/*}/test/**/*.test.ts'] },
       },
       {
         plugins: [react()],
