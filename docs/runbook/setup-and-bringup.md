@@ -93,7 +93,8 @@ npm run dev:api                     # :4000, đọc apps/api/.env
 npm run ask:client -- "Thử việc tối đa bao lâu?"   # 402 → ký → trả tiền → 202 ANSWERING (CẦN OWNER DUYỆT nếu chạy trên Fuji thật: tiền nằm trong escrow tới khi A5 chốt)
 
 # 3. Chạy
-npm run dev                         # api :4000, web :3000
+npm run dev:api                     # api :4000 (một terminal)
+npm run dev:web                     # web :3000 (terminal khác)
 ```
 
 ## 5. Kiểm tra nhanh sau khi lên
@@ -104,7 +105,7 @@ npm run dev                         # api :4000, web :3000
 | `curl localhost:4000/api/corpus` | `rootMatches: true`, `dieuCount: 220` |
 | `curl -i -X POST localhost:4000/api/ask -H 'content-type: application/json' -d '{"question":"Thử việc tối đa bao lâu?"}'` | `402`, có header `PAYMENT-REQUIRED` |
 | Mở `localhost:3000`, kết nối ví, hỏi một câu | Kết thúc ở `PAID` hoặc `REFUNDED`, có link Snowtrace |
-| `npm run e2e:fuji` | 3 kịch bản đạt |
+| `npm run e2e:contract` | Chạy khô: kiểm điều kiện và mô phỏng, không gửi gì. Thêm `-- --send` để gửi thật (cần owner duyệt) |
 
 ## 6. Sự cố thường gặp
 
