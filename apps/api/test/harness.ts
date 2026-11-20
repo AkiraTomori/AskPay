@@ -325,6 +325,7 @@ export interface TestOptions {
   quoteTtlSeconds?: number;
   requestWaitMs?: number;
   demoFakeCitation?: boolean;
+  demoStall?: boolean;
   // Reuse a database to model a restart: a new process over the same file.
   store?: ReturnType<typeof openStore>;
   // A signer that is NOT the escrow's checker, to model a key mismatch.
@@ -348,6 +349,7 @@ export function createTestApp(options: TestOptions = {}) {
       priceUnits: PRICE,
       quoteTtlSeconds: options.quoteTtlSeconds ?? 300,
       demoFakeCitation: options.demoFakeCitation ?? false,
+      demoStall: options.demoStall ?? false,
     },
     store,
     chain,

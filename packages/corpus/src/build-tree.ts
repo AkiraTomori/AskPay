@@ -68,6 +68,22 @@ export function serializeRoot(root: Hex): string {
   return `${root}\n`;
 }
 
+// The name /verify shows next to the root (W5 U-22). Same wording as the API's /corpus.
+export const LAW_NAME = 'Bộ luật Lao động 2019 (45/2019/QH14)';
+
+// What the /verify page imports at build time, so "the root in the repo" is never read from the
+// server. Fixed key order, no date: a rebuild must be byte-identical (`git diff --exit-code`).
+export function serializeMeta(build: CorpusBuild): string {
+  const meta = {
+    lawName: LAW_NAME,
+    lawId: build.lawId,
+    root: build.root,
+    dieuCount: new Set(build.khoans.map((k) => k.dieu)).size,
+    khoanCount: build.khoans.length,
+  };
+  return `${JSON.stringify(meta, null, 2)}\n`;
+}
+
 // Cross-language fixture for Foundry (K1/K2). It lists the inputs *and* the expected hashes so
 // Solidity can recompute each one rather than only comparing hex: text -> textHash, leaf, proof
 // against the root, quote -> quoteHash, and citationsHash.

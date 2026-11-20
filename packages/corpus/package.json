@@ -8,6 +8,7 @@
       "types": "./dist/build-tree.d.ts",
       "default": "./dist/build-tree.js"
     },
+    "./meta": "./data/blld-2019.meta.json",
     "./normalize": {
       "types": "./dist/normalize.d.ts",
       "default": "./dist/normalize.js"

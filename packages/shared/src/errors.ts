@@ -47,3 +47,14 @@ export const refundReasonCodes = Object.keys(REFUND_REASONS) as [
   RefundReasonCode,
   ...RefundReasonCode[],
 ];
+
+// Same order as `enum RefundReason` in AskPayEscrow.sol; a test reads the Solidity source to keep
+// them equal. Index 0 (None) never appears in a Refunded event.
+export const REFUND_REASON_BY_INDEX: readonly (RefundReasonCode | 'NONE')[] = [
+  'NONE',
+  'NO_CITATION',
+  'INVALID_CITATION',
+  'CHECKER_REJECTED',
+  'ANSWER_FAILED',
+  'TIMEOUT',
+];

@@ -78,3 +78,17 @@ export function formatDateTimeFullVi(ms: number): string {
   const p = vnParts(ms, true);
   return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}:${p.second}`;
 }
+
+// The time of day only, in Vietnam time: 1762699400000 -> "21:43".
+export function formatTimeOfDayVi(ms: number): string {
+  const p = vnParts(ms, false);
+  return `${p.hour}:${p.minute}`;
+}
+
+// 205000 ms -> "03:25". Never negative.
+export function formatCountdown(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const mm = String(Math.floor(total / 60)).padStart(2, '0');
+  const ss = String(total % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}

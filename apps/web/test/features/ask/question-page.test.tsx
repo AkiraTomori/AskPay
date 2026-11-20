@@ -105,9 +105,9 @@ describe('/questions/[qid] progress (W2, kept under W3)', () => {
     expect(stepTexts()[2]).toContain('bỏ qua');
   });
 
-  it('CLAIMABLE: says it is overdue, with no refund button yet (W5)', async () => {
+  it('CLAIMABLE: says it is overdue and offers the refund (W5); a wallet is needed first', async () => {
     renderPage(() => json({ data: resultBody({ stage: 'SETTLING', status: 'CLAIMABLE' }) }));
     expect(await screen.findByText(askMessages.statusClaimable)).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: askMessages.connectToClaim })).toBeInTheDocument();
   });
 });

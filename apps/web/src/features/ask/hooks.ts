@@ -1,16 +1,19 @@
 'use client';
 
 import type { QuestionResult } from '@askpay/shared/api';
+import { askPayEscrowAbi, fujiDeployment } from '@askpay/shared/abi';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Hex } from 'viem';
-import { useSignTypedData } from 'wagmi';
-import { isSettled } from '@/components/question/status';
+import type { Address, Hex } from 'viem';
+import { useBlock, useConfig, useReadContract, useSignTypedData, useWriteContract } from 'wagmi';
+import { getTransactionReceipt, simulateContract } from 'wagmi/actions';
+import { CHAIN_STATUSES, isSettled } from '@/components/question/status';
 import { useUsdcBalance } from '@/components/wallet/use-usdc-balance';
 import { useWalletStatus } from '@/components/wallet/use-wallet-status';
 import { FUJI_CHAIN_ID } from '@/lib/constants';
 import { classifyWalletError } from '@/lib/wallet-errors';
+import { classifyClaimError, isInsufficientGas, refundedByClaim } from './claim';
 import { getQuestion, requestQuote, submitPayment } from './api';
 import { HELD_STAGES, type AskState } from './ask-state';
 import { deriveButton, deriveNotice } from './ask-view';
@@ -24,7 +27,7 @@ import {
   type SignedPayment,
 } from './payment';
 import { checkQuestion } from './question';
-import { hasUnverifiedCitation } from './result-view';
+import { hasUnverifiedCitation, type ChainRead } from './result-view';
 import { classifySubmit } from './submit-outcome';
 
 // --- Polling a question (shared with the result page, W3) -------------------------------------
@@ -70,16 +73,24 @@ export function nextPollDelay(
   return undefined;
 }
 
+// After the payer's own claimRefund the chain is ahead of the indexer: read the API more often, so
+// the page can hand over to its answer soon (W5 §4).
+const CLAIMED_POLL_MS = 3000;
+
 type PollInput = {
   data: QuestionResult | undefined;
   notFound: boolean;
   backoff: boolean;
   dataUpdateCount: number;
+  fast: boolean;
 } & PollContext;
 
 // The one rule for "is another read scheduled, and when" (used by refetchInterval and by the view).
-function pollInterval({ data, notFound, backoff, dataUpdateCount, ...context }: PollInput) {
-  // The result page stops on a 404; while a payment is unsure a 404 proves nothing, keep going.
+function pollInterval({ data, notFound, backoff, dataUpdateCount, fast, ...context }: PollInput) {
+  // The question was refunded by the payer's own tx: ask every 3 s until the API says so too.
+  if (fast && !(data?.status === 'REFUNDED' && isSettled(data))) return CLAIMED_POLL_MS;
+  // The result page stops on a 404 (the chain read of W5 goes on at its own pace); while a payment
+  // is unsure a 404 proves nothing, keep going.
   if (!backoff && notFound) return false;
   const delay = nextPollDelay(data, context);
   if (delay !== undefined) return delay;
@@ -87,8 +98,12 @@ function pollInterval({ data, notFound, backoff, dataUpdateCount, ...context }: 
   return backoff && dataUpdateCount >= 30 ? 3000 : 1000;
 }
 
-export function useQuestionProgress(qid: string | undefined, options: { backoff?: boolean } = {}) {
+export function useQuestionProgress(
+  qid: string | undefined,
+  options: { backoff?: boolean; fast?: boolean } = {},
+) {
   const backoff = options.backoff ?? false;
+  const fast = options.fast ?? false;
   // Read counters, in a ref for refetchInterval (sync) and in state for rendering (a read with
   // identical data does not re-render by itself). They start again on a page reload or a retry.
   const reads = useRef({ unverified: 0, unsettled: 0 });
@@ -105,6 +120,7 @@ export function useQuestionProgress(qid: string | undefined, options: { backoff?
         notFound: q.state.error instanceof NotFoundError,
         backoff,
         dataUpdateCount: q.state.dataUpdateCount,
+        fast,
         unverifiedReads: reads.current.unverified,
         unsettledReads: reads.current.unsettled,
         hidden: typeof document !== 'undefined' && document.visibilityState === 'hidden',
@@ -135,6 +151,7 @@ export function useQuestionProgress(qid: string | undefined, options: { backoff?
       // Only the 3 s step of the payment flow (`backoff`) uses this; the view needs `polling` on
       // the result page alone.
       dataUpdateCount: 0,
+      fast,
       unverifiedReads: readCounts.unverified,
       unsettledReads: readCounts.unsettled,
       hidden: false,
@@ -162,6 +179,271 @@ export function useQuestionProgress(qid: string | undefined, options: { backoff?
     refetch,
     retry,
   };
+}
+
+// --- The escrow read straight from the chain (W5 §2.2) ----------------------------------------------
+
+const CHAIN_POLL_MS = 15_000;
+// The API does not know a question's `deadline` until the indexer reads its Deposited log. A PENDING
+// page past createdAt + answerWindow + this margin (machine clock) reads the chain itself (§2.1 #3).
+const OVERDUE_MARGIN_MS = 30_000;
+
+// True once `createdAt` (ms) + the answer window + the margin has passed on the machine's clock. Only
+// decides whether to ASK the chain; the verdict always comes from the chain's own block time.
+export function useApiOverdue(createdAt: number | undefined): boolean {
+  const [overdue, setOverdue] = useState(false);
+  useEffect(() => {
+    if (createdAt === undefined) return;
+    const at = createdAt + fujiDeployment.answerWindow * 1000 + OVERDUE_MARGIN_MS;
+    const wait = at - Date.now();
+    if (wait <= 0) {
+      setOverdue(true);
+      return;
+    }
+    setOverdue(false);
+    const id = setTimeout(() => setOverdue(true), wait);
+    return () => clearTimeout(id);
+  }, [createdAt]);
+  return overdue;
+}
+
+// Reads `questions(qid)` and the latest block with the public client: no wallet, no AskPay server.
+// Re-read every 15 s while the tab is open. Off (and silent) until `enabled`.
+export function useOnChainQuestion(
+  qid: string | undefined,
+  enabled: boolean,
+): { read: ChainRead; refetch: () => void } {
+  const active = enabled && qid !== undefined && isBytes32(qid);
+  const question = useReadContract({
+    abi: askPayEscrowAbi,
+    address: fujiDeployment.address,
+    functionName: 'questions',
+    args: [qid as Hex],
+    chainId: FUJI_CHAIN_ID,
+    query: { enabled: active, refetchInterval: CHAIN_POLL_MS, retry: 1, retryDelay: 500 },
+  });
+  const block = useBlock({
+    chainId: FUJI_CHAIN_ID,
+    query: { enabled: active, refetchInterval: CHAIN_POLL_MS, retry: 1, retryDelay: 500 },
+  });
+  const { refetch: refetchQuestion } = question;
+  const { refetch: refetchBlock } = block;
+  const refetch = useCallback(() => {
+    void refetchQuestion();
+    void refetchBlock();
+  }, [refetchQuestion, refetchBlock]);
+
+  if (!active) return { read: { kind: 'off' }, refetch };
+  if (question.data && block.data) {
+    const [payer, amount, deadline, status] = question.data;
+    return {
+      read: {
+        kind: 'data',
+        status: CHAIN_STATUSES[Number(status)] ?? 'None',
+        payer,
+        amount,
+        deadline: Number(deadline),
+        now: Number(block.data.timestamp),
+      },
+      refetch,
+    };
+  }
+  // A failed refresh keeps the last good read on screen; only "nothing yet" counts as failed.
+  if (question.isError || block.isError) return { read: { kind: 'failed' }, refetch };
+  return { read: { kind: 'loading' }, refetch };
+}
+
+const isBytes32 = (value: string): value is Hex => /^0x[0-9a-f]{64}$/i.test(value);
+
+// --- useClaimRefund (W5 §3) ----------------------------------------------------------------------
+
+export type ClaimState =
+  | { kind: 'idle'; rejected?: true }
+  | { kind: 'simulating' }
+  | { kind: 'confirming' }
+  | { kind: 'pending'; hash: Hex; slow: boolean }
+  // `byPayer`: the wallet that clicked is the asker. Anyone may claim; the money goes to `payer`.
+  | { kind: 'refunded'; hash: Hex; payer: Address; byPayer: boolean }
+  // Someone else closed it first. `wasted` is true when OUR tx went out and reverted (it cost gas).
+  | { kind: 'alreadyClosed'; wasted: boolean }
+  | { kind: 'notYet'; deadline: number | undefined }
+  | { kind: 'failed'; error: 'rpc' | 'noGas' | 'wallet' | 'other' };
+
+const RECEIPT_FAST_MS = 2000;
+const RECEIPT_SLOW_MS = 5000;
+const RECEIPT_SLOW_AFTER_MS = 60_000;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// The payer's way out when the server is gone: simulate, open the wallet, wait for the receipt, and
+// accept it only when it carries the escrow's own Refunded log for this qid (U-21). One tx per
+// click; nothing is ever sent without one.
+export function useClaimRefund(qid: string) {
+  const wallet = useWalletStatus();
+  const config = useConfig();
+  const queryClient = useQueryClient();
+  const balanceKey = useUsdcBalance().queryKey;
+  const { mutateAsync: writeContract } = useWriteContract();
+
+  const [state, setStateRaw] = useState<ClaimState>({ kind: 'idle' });
+  const stateRef = useRef(state);
+  const walletRef = useRef(wallet);
+  // Bumped when an unsent step is abandoned (account or network changed); late answers then do nothing.
+  const flowRef = useRef(0);
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    walletRef.current = wallet;
+  });
+
+  const setState = useCallback((next: ClaimState) => {
+    stateRef.current = next;
+    if (aliveRef.current) setStateRaw(next);
+  }, []);
+
+  // After any end of the flow the API and the chain are read again (§3.2: "refetch ... rồi hiện
+  // trạng thái cuối"), and the balance too.
+  const refreshAll = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: balanceKey });
+    void queryClient.invalidateQueries({ queryKey: ['question', qid] });
+    void queryClient.invalidateQueries({ queryKey: ['readContract'] });
+    void queryClient.invalidateQueries({ queryKey: ['getBlock'] });
+  }, [queryClient, balanceKey, qid]);
+
+  const waitForReceipt = useCallback(
+    async (hash: Hex, claimer: Address) => {
+      const startedAt = Date.now();
+      for (;;) {
+        try {
+          const receipt = await getTransactionReceipt(config, { hash, chainId: FUJI_CHAIN_ID });
+          if (receipt.status === 'reverted') {
+            setState({ kind: 'alreadyClosed', wasted: true });
+            refreshAll();
+            return;
+          }
+          const proof = refundedByClaim(receipt, qid as Hex);
+          if (proof) {
+            setState({
+              kind: 'refunded',
+              hash,
+              payer: proof.payer,
+              byPayer: proof.payer.toLowerCase() === claimer.toLowerCase(),
+            });
+            refreshAll();
+            return;
+          }
+          // A success without our log is not proof of anything: keep the page on what it can prove.
+          setState({ kind: 'failed', error: 'other' });
+          refreshAll();
+          return;
+        } catch {
+          // Not mined yet, or the node did not answer: ask again. Never invite a second tx.
+        }
+        if (!aliveRef.current) return;
+        const waited = Date.now() - startedAt;
+        if (waited >= RECEIPT_SLOW_AFTER_MS && stateRef.current.kind === 'pending') {
+          if (!stateRef.current.slow) setState({ kind: 'pending', hash, slow: true });
+        }
+        await sleep(waited >= RECEIPT_SLOW_AFTER_MS ? RECEIPT_SLOW_MS : RECEIPT_FAST_MS);
+      }
+    },
+    [config, qid, refreshAll, setState],
+  );
+
+  const claim = useCallback(async () => {
+    const current = stateRef.current;
+    const from = walletRef.current;
+    if (current.kind === 'simulating' || current.kind === 'confirming') return;
+    if (current.kind === 'pending' || current.kind === 'refunded') return;
+    if (from.kind !== 'ready') return;
+
+    const flow = (flowRef.current += 1);
+    setState({ kind: 'simulating' });
+    let request;
+    try {
+      ({ request } = await simulateContract(config, {
+        abi: askPayEscrowAbi,
+        address: fujiDeployment.address,
+        functionName: 'claimRefund',
+        args: [qid as Hex],
+        account: from.address,
+        chainId: FUJI_CHAIN_ID,
+      }));
+    } catch (error) {
+      if (flow !== flowRef.current || !aliveRef.current) return;
+      const failure = classifyClaimError(error);
+      if (failure.kind === 'notOpen') {
+        // Not an error: someone settled it first (system-design §5.6 E). No wallet was opened.
+        setState({ kind: 'alreadyClosed', wasted: false });
+        refreshAll();
+      } else if (failure.kind === 'notYet') {
+        setState({
+          kind: 'notYet',
+          deadline: failure.deadline === undefined ? undefined : Number(failure.deadline),
+        });
+      } else {
+        setState({ kind: 'failed', error: failure.kind === 'rpc' ? 'rpc' : 'other' });
+      }
+      return;
+    }
+    // The account or network changed while simulating, or the page was left: nothing was sent, and
+    // nothing will be (a wallet prompt must never appear for a page that is gone).
+    if (flow !== flowRef.current || !aliveRef.current) return;
+
+    setState({ kind: 'confirming' });
+    let hash: Hex;
+    try {
+      hash = await writeContract(request);
+    } catch (error) {
+      if (flow !== flowRef.current) return;
+      const kind = classifyWalletError(error);
+      if (kind === 'rejected') setState({ kind: 'idle', rejected: true });
+      else if (isInsufficientGas(error)) setState({ kind: 'failed', error: 'noGas' });
+      else setState({ kind: 'failed', error: 'wallet' });
+      return;
+    }
+    // A hash exists: the tx is out of the wallet's hands, so from here nothing is abandoned.
+    setState({ kind: 'pending', hash, slow: false });
+    await waitForReceipt(hash, from.address);
+  }, [config, qid, refreshAll, setState, waitForReceipt, writeContract]);
+
+  // §3.2: a new account or network drops an unsent step. A sent tx is never cancelled.
+  const walletKey =
+    wallet.kind === 'ready'
+      ? `${wallet.address}:${FUJI_CHAIN_ID}`
+      : wallet.kind === 'wrongNetwork'
+        ? `${wallet.address}:${wallet.chainId}`
+        : wallet.kind;
+  const previousWalletKey = useRef(walletKey);
+  useEffect(() => {
+    if (previousWalletKey.current === walletKey) return;
+    previousWalletKey.current = walletKey;
+    const current = stateRef.current;
+    if (current.kind === 'simulating' || current.kind === 'confirming') {
+      flowRef.current += 1;
+      setState({ kind: 'idle' });
+    }
+  }, [walletKey, setState]);
+
+  // "Not yet" waits for the chain's own clock: poll the block until it passes the deadline.
+  const waiting = state.kind === 'notYet';
+  const block = useBlock({
+    chainId: FUJI_CHAIN_ID,
+    query: { enabled: waiting, refetchInterval: 3000 },
+  });
+  const blockTime = block.data ? Number(block.data.timestamp) : undefined;
+  useEffect(() => {
+    const current = stateRef.current;
+    if (current.kind !== 'notYet' || blockTime === undefined) return;
+    if (current.deadline === undefined || blockTime > current.deadline) setState({ kind: 'idle' });
+  }, [blockTime, setState, state]);
+
+  return { state, claim, blockTime };
 }
 
 // --- Clock helpers ----------------------------------------------------------------------------

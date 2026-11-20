@@ -16,6 +16,7 @@ const { default: RootLayout } = await import('@/app/layout');
 const { default: AskPage } = await import('@/app/page');
 const { default: DashboardPage, metadata: dashboardMetadata } =
   await import('@/app/dashboard/page');
+const { default: VerifyPage, metadata: verifyMetadata } = await import('@/app/verify/page');
 const { default: NotFound } = await import('@/app/not-found');
 const { default: ErrorPage } = await import('@/app/error');
 const { default: GlobalError } = await import('@/app/global-error');
@@ -32,10 +33,17 @@ describe('/dashboard route', () => {
   });
 });
 
+describe('/verify route', () => {
+  it('W5: the tab title is "Tự xác minh · AskPay"', () => {
+    expect(verifyMetadata.title).toBe('Tự xác minh · AskPay');
+  });
+});
+
 describe('root layout (server render)', () => {
   it.each([
     ['/', <AskPage key="p" />],
     ['/dashboard', <DashboardPage key="d" />],
+    ['/verify', <VerifyPage key="v" />],
     ['a route that does not exist', <NotFound key="n" />],
     ['an error page', <ErrorPage key="e" error={new Error('boom')} reset={noop} />],
   ])('AP-07-AC04 W1-E01: shows the disclaimer on %s', (_route, page) => {

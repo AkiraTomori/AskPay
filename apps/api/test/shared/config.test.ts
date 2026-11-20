@@ -126,6 +126,14 @@ describe('loadConfig', () => {
     });
   });
 
+  describe('demo stall', () => {
+    it('is off unless explicitly turned on', () => {
+      expect(loadConfig(base).demoStall).toBe(false);
+      expect(loadConfig({ ...base, DEMO_STALL: 'true' }).demoStall).toBe(true);
+      expect(() => loadConfig({ ...base, DEMO_STALL: 'yes' })).toThrow(/DEMO_STALL/);
+    });
+  });
+
   describe('LLM settings', () => {
     it('are required: without an LLM every paid question would be refunded', () => {
       expect(() => loadConfig(without(without(base, 'LLM_API_KEY'), 'LLM_MODEL'))).toThrow(

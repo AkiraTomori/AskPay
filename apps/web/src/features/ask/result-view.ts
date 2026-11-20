@@ -1,7 +1,16 @@
 import type { QuestionResult } from '@askpay/shared/api';
 import type { RefundReasonCode } from '@askpay/shared/errors';
 import type { Citation } from '@askpay/shared/api';
-import { badgeOf, isSettled, type Badge } from '@/components/question/status';
+import type { Address, Hex } from 'viem';
+import {
+  badgeOf,
+  badgeOfChain,
+  isSettled,
+  type Badge,
+  type ChainStatus,
+} from '@/components/question/status';
+import { shortHash } from '@/lib/format';
+import { askMessages } from './messages';
 import type { StepsInput } from './steps';
 
 // A pure description of the /questions/[qid] screen (design W3 §3, §4). Components only draw it.
@@ -17,13 +26,41 @@ export function hasUnverifiedCitation(result: QuestionResult): boolean {
   );
 }
 
+// What the page read from the escrow itself (W5 §2.2): `off` while the API is enough.
+export type ChainRead =
+  | { kind: 'off' }
+  | { kind: 'loading' }
+  | { kind: 'failed' }
+  // `now` and `deadline` are unix seconds; `now` is the latest block's timestamp.
+  | {
+      kind: 'data';
+      status: ChainStatus;
+      payer: Address;
+      amount: bigint;
+      deadline: number;
+      now: number;
+    };
+
+// The payer's refund proved by this page's own claim: the tx, who got the money, and whether the
+// wallet that clicked is that same wallet (it need not be: anyone may claim for the payer).
+export type ClaimedRefund = { hash: Hex; payer: Address; byPayer: boolean };
+
+// What the claim panel needs: who gets the money and how much, from the API or from the chain.
+export type ClaimView = { payer: Address | undefined; amount: bigint | undefined };
+
 export type NoticeView =
   | { kind: 'noBasis'; warnsAnswer: boolean }
   | { kind: 'failedCheck'; reason: 'INVALID_CITATION' | 'CHECKER_REJECTED'; warnsAnswer: true }
   | { kind: 'answerFailed' }
   | { kind: 'timeout'; warnsAnswer: boolean }
+  // A claim by a wallet that is not the asker: the money went to the asker, not to "you".
+  | { kind: 'timeoutToPayer'; payer: Address }
   | { kind: 'generic' }
-  | { kind: 'claimable' };
+  | { kind: 'claimable'; claim: ClaimView }
+  // The chain says Open and the deadline is still ahead (the server is silent; the payer can wait).
+  | { kind: 'chainOpenNotYet'; deadline: number }
+  | { kind: 'chainPaid' }
+  | { kind: 'chainRefunded' };
 
 export type CitationView = {
   citation: Citation;
@@ -37,14 +74,19 @@ export type AnswerView =
 
 export type Refresh = 'live' | 'retrying' | 'lostConnection' | 'unsettled';
 
+// The API could not answer and the chain is being read or could not be read (design W5 §2.2).
+export type ChainHint = 'reading' | 'failed' | undefined;
+
 export type ResultView =
   | { kind: 'loading' }
-  | { kind: 'notFound' }
-  | { kind: 'loadFailed' }
+  | { kind: 'notFound'; chain?: ChainHint }
+  | { kind: 'loadFailed'; chain?: ChainHint }
   | { kind: 'notHeld'; question: string }
   | {
       kind: 'question';
       question: string;
+      // Set when the page is drawn from the chain alone, so it says where the numbers come from.
+      source?: 'chain';
       badge: Badge;
       meta: {
         amount?: bigint;
@@ -69,16 +111,154 @@ export type ResultView =
     };
 
 export type ResultInput = {
+  qid: string;
   result: QuestionResult | undefined;
   notFound: boolean;
   loadFailed: boolean;
   // Is another read scheduled? (useQuestionProgress)
   polling: boolean;
+  // Read from the escrow (W5). `off` when the API is enough.
+  chain?: ChainRead;
+  // This page's own claimRefund was mined and its receipt carried the escrow's Refunded log (U-21).
+  claimed?: ClaimedRefund | undefined;
 };
 
-export function toResultView({ result, notFound, loadFailed, polling }: ResultInput): ResultView {
+const chainHint = (chain: ChainRead): ChainHint =>
+  chain.kind === 'loading' ? 'reading' : chain.kind === 'failed' ? 'failed' : undefined;
+
+// A question the API cannot describe, drawn from the escrow alone (W5 §2.2).
+function chainOnlyView(qid: string, chain: Extract<ChainRead, { kind: 'data' }>): ResultView {
+  const badge = badgeOfChain(chain);
+  if (badge === undefined) return { kind: 'notFound' };
+  const base = {
+    kind: 'question' as const,
+    question: askMessages.questionById(shortHash(qid)),
+    source: 'chain' as const,
+    badge,
+    meta: { amount: chain.amount, settleKind: 'paid' as const },
+    timeline: undefined,
+    settled: false,
+    citations: [],
+    verifying: false,
+    refresh: 'live' as const,
+    actions: [],
+  };
+  switch (chain.status) {
+    case 'Open':
+      return {
+        ...base,
+        notice:
+          badge === 'expired'
+            ? { kind: 'claimable', claim: { payer: chain.payer, amount: chain.amount } }
+            : { kind: 'chainOpenNotYet', deadline: chain.deadline },
+      };
+    case 'Paid':
+      // The chain knows it was paid, not what the answer was, and `verifiedOnChain` is the server's
+      // to say: no card and no mark (AP-07-AC02).
+      return { ...base, settled: true, notice: { kind: 'chainPaid' } };
+    default:
+      return {
+        ...base,
+        meta: { ...base.meta, settleKind: 'refund' as const },
+        settled: true,
+        notice: { kind: 'chainRefunded' },
+      };
+  }
+}
+
+// The API's answer, corrected by the chain where the chain knows better (P2: the chain wins).
+// Only a question the API still shows as open is touched; a settled one is the API's to describe.
+function withChain(result: QuestionResult, chain: ChainRead): QuestionResult {
+  if (chain.kind !== 'data') return result;
+  const open = result.status === undefined || result.status === 'PENDING';
+  if (open && chain.status === 'Open' && chain.now > chain.deadline) {
+    // Indexer lag or stop: the API has not seen the deadline pass, the block has (§2.1 #3).
+    return {
+      ...result,
+      status: 'CLAIMABLE',
+      payer: result.payer ?? chain.payer,
+      amount: result.amount ?? chain.amount.toString(),
+    };
+  }
+  if (result.status === 'CLAIMABLE') {
+    return {
+      ...result,
+      payer: result.payer ?? chain.payer,
+      amount: result.amount ?? chain.amount.toString(),
+    };
+  }
+  return result;
+}
+
+// The page after this wallet's own claimRefund, from its receipt (design W5 §4, U-21).
+function claimedView(
+  qid: string,
+  result: QuestionResult | undefined,
+  { hash, payer, byPayer }: ClaimedRefund,
+  chain: ChainRead,
+): ResultView {
+  const amount =
+    result?.amount !== undefined
+      ? BigInt(result.amount)
+      : chain.kind === 'data'
+        ? chain.amount
+        : undefined;
+  return {
+    kind: 'question',
+    question: result?.question ?? askMessages.questionById(shortHash(qid)),
+    ...(result === undefined && { source: 'chain' as const }),
+    badge: 'refunded',
+    meta: {
+      ...(amount !== undefined && { amount }),
+      ...(result?.createdAt !== undefined && { createdAt: result.createdAt }),
+      ...(result?.tx?.deposit !== undefined && { deposit: result.tx.deposit }),
+      settle: hash,
+      settleKind: 'refund',
+    },
+    timeline: { stage: 'REFUNDED', status: 'REFUNDED', reason: 'TIMEOUT', settleTx: hash },
+    settled: true,
+    notice: byPayer ? { kind: 'timeout', warnsAnswer: false } : { kind: 'timeoutToPayer', payer },
+    citations: [],
+    verifying: false,
+    refresh: 'live',
+    actions: ['askAnother'],
+  };
+}
+
+export function toResultView({
+  qid,
+  result,
+  notFound,
+  loadFailed,
+  polling,
+  chain = { kind: 'off' },
+  claimed,
+}: ResultInput): ResultView {
+  // The payer's own tx proved the refund; until the API says the same, the receipt is what is shown.
+  if (claimed !== undefined && !(result?.status === 'REFUNDED' && isSettled(result))) {
+    return claimedView(qid, result, claimed, chain);
+  }
+  if (!result) {
+    if (notFound || loadFailed) {
+      // The API cannot say. The chain can, when it was asked and answered (P5).
+      if (chain.kind === 'data' && chain.status !== 'None') return chainOnlyView(qid, chain);
+      return notFound
+        ? { kind: 'notFound', ...(chainHint(chain) && { chain: chainHint(chain) }) }
+        : { kind: 'loadFailed', ...(chainHint(chain) && { chain: chainHint(chain) }) };
+    }
+    return { kind: 'loading' };
+  }
   if (notFound) return { kind: 'notFound' };
-  if (!result) return loadFailed ? { kind: 'loadFailed' } : { kind: 'loading' };
+  // The chain says Refunded before the API does (a claim by another tab or wallet, indexer lag).
+  if (
+    chain.kind === 'data' &&
+    chain.status === 'Refunded' &&
+    !(result.status === 'REFUNDED' && isSettled(result))
+  ) {
+    const view = chainOnlyView(qid, chain);
+    return view.kind === 'question' ? { ...view, question: result.question } : view;
+  }
+  result = withChain(result, chain);
 
   const { status, stage } = result;
   if (status === undefined && (stage === 'QUOTED' || stage === 'EXPIRED')) {
@@ -116,7 +296,13 @@ export function toResultView({ result, notFound, loadFailed, polling }: ResultIn
       badge,
       timeline: undefined,
       settled: false,
-      notice: { kind: 'claimable' },
+      notice: {
+        kind: 'claimable',
+        claim: {
+          payer: result.payer as Address | undefined,
+          amount: result.amount === undefined ? undefined : BigInt(result.amount),
+        },
+      },
       citations: [],
       verifying: false,
       actions: [],

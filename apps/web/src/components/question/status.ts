@@ -34,6 +34,35 @@ export function badgeOf({
   return 'pending';
 }
 
+// What `questions(qid).status` says on the escrow (enum order of AskPayEscrow.Status).
+export type ChainStatus = 'None' | 'Open' | 'Paid' | 'Refunded';
+export const CHAIN_STATUSES: readonly ChainStatus[] = ['None', 'Open', 'Paid', 'Refunded'];
+
+// The badge for a question read straight from the escrow (W5 §2.2), through the same module as
+// `badgeOf` so there is one rule. `deadline` and `now` are unix seconds; `now` is the latest BLOCK's
+// timestamp, not the user's clock. The contract allows claimRefund when timestamp > deadline.
+// `None` has no badge: nothing is held, so there is nothing to show.
+export function badgeOfChain({
+  status,
+  deadline,
+  now,
+}: {
+  status: ChainStatus;
+  deadline: number;
+  now: number;
+}): Badge | undefined {
+  switch (status) {
+    case 'None':
+      return undefined;
+    case 'Open':
+      return now > deadline ? 'expired' : 'pending';
+    case 'Paid':
+      return 'paid';
+    case 'Refunded':
+      return 'refunded';
+  }
+}
+
 export const BADGE_LABELS: Record<Badge, string> = {
   pending: 'ĐANG XỬ LÝ',
   paid: 'ĐÃ THANH TOÁN',

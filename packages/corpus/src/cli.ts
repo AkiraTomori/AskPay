@@ -6,6 +6,7 @@ import {
   buildCorpus,
   buildFoundryVectors,
   serializeCorpusKhoans,
+  serializeMeta,
   serializeRoot,
   serializeTree,
   serializeVectors,
@@ -21,6 +22,7 @@ mkdirSync(outDir, { recursive: true });
 writeFileSync(`${outDir}/blld-2019.khoan.json`, serializeCorpusKhoans(build.khoans));
 writeFileSync(`${outDir}/blld-2019.tree.json`, serializeTree(build.tree));
 writeFileSync(`${outDir}/blld-2019.root.txt`, serializeRoot(build.root));
+writeFileSync(`${outDir}/blld-2019.meta.json`, serializeMeta(build));
 writeFileSync(
   `${outDir}/blld-2019.foundry-vectors.json`,
   serializeVectors(buildFoundryVectors(build)),

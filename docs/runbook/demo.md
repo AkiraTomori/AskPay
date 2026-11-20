@@ -10,6 +10,7 @@
 - [ ] Ví demo đang ở mạng **Avalanche Fuji**, đã kết nối web
 - [ ] Đã chạy thử 5 câu ở §2; kết quả như kỳ vọng
 - [ ] `DEMO_FAKE_CITATION=true` trên instance demo (chỉ hoạt động với tiền tố `#demo-fake`)
+- [ ] `DEMO_STALL=true` **chỉ** khi quay đoạn §2b, và **tắt lại** sau đó. Với cờ bật, một câu `#demo-stall` bị giữ cho tới khi API khởi động lại
 - [ ] LLM còn quota; thử 1 câu xong trong < 20 giây
 - [ ] `/dashboard`: số ở thẻ "Câu hỏi" bằng số hàng trong bảng (sau khi bấm hết "Xem thêm"). Từ 15/11 hai số khớp (12 = 12): owner chốt bỏ 7 câu thử đầu tiên (block 61047757–61067094, DB không còn nội dung của chúng) khỏi `chain_events` của DB demo, bản sao lưu ở `data/askpay.backup-20261115-181201.sqlite` (gitignore). Hệ quả: `/stats` **không** phủ toàn bộ escrow trên Snowtrace, thiếu 7 tx thử đó. Dựng lại DB thì đặt `SCAN_LOOKBACK_BLOCKS` sao cho quét bắt đầu **sau** block 61067094; chạm `deploymentBlock` sẽ đếm lại 7 câu ấy và hai số lại lệch
 - [ ] Mở sẵn các tab: trang chủ, `/dashboard`, `/verify`, Snowtrace (trang contract)
@@ -29,7 +30,19 @@
 | **2:20** · Minh bạch | Mở `/dashboard` rồi `/verify` | Tỉ lệ hoàn tiền, kết quả eval; root trong repo = root on-chain | "Ai cũng tự kiểm được: corpus, Merkle root, contract đều công khai." |
 | **2:45** · Kết | Slide cuối | Roadmap | "Trích dẫn không qua kiểm tra thì hoàn tiền, và chính smart contract trả tiền lại cho bạn." |
 
-Nếu còn thời gian: tắt server, chờ quá hạn, bấm **"Nhận lại tiền"** từ ví (P5). Nên quay sẵn đoạn này vì phải chờ 10 phút.
+Nếu còn thời gian: tắt server, chờ quá hạn, bấm **"Nhận lại tiền"** từ ví (P5). Nên quay sẵn đoạn này vì phải chờ 10 phút. Cách dựng đoạn này ở §2b.
+
+## 2b. Đoạn "server tắt → tự nhận lại tiền" (W5, AP-06-AC03)
+
+Cần `DEMO_STALL=true` trên API (chỉ có tác dụng với câu có tiền tố `#demo-stall`). Bật cờ này xong thì **chạy thử trước**, vì cả đoạn phải chờ 10 phút.
+
+1. Hỏi: *"#demo-stall Thời gian thử việc tối đa là bao lâu?"* → ký trong ví. API giữ tiền rồi dừng: không trả lời, không chốt, không hoàn tiền. Trang câu hỏi mở ra ở trạng thái ĐANG XỬ LÝ.
+2. **Tắt API ngay** (dừng process). Giữ tắt tới khi người hỏi nhận lại tiền xong. **Không khởi động lại API trước đó:** lúc khởi động `ask.recovery` hoàn tiền mọi câu đang mở mà chưa có kết quả đã lưu, nên máy chủ sẽ hoàn tiền thay người hỏi và đoạn demo mất ý nghĩa. Nếu API tắt từ lúc `Deposited`, câu hỏi này luôn tới được `claimRefund`.
+3. Chờ 10 phút (`answerWindow`). Mở `/questions/<qid>`: khối **"Trạng thái đọc thẳng từ blockchain"**, badge **QUÁ HẠN**, nút **"Nhận lại tiền"**. Trước hạn, trang nói "Bạn tự nhận lại được sau HH:mm".
+4. Bấm **"Nhận lại tiền"** bằng ví Core (cần AVAX testnet trả gas) → ký → **ĐÃ HOÀN TIỀN** kèm link tx; số dư USDC tăng lại 0,05.
+5. Bật lại API. Khi indexer đọc tới block của tx (vài chục giây tới vài phút), trang tự chuyển sang dữ liệu API: `REFUNDED · TIMEOUT`.
+
+Ghi lại cho lần chạy thật: qid, tx deposit, tx `claimRefund`.
 
 ## 3. Câu nói về Avalanche (25% điểm tích hợp)
 

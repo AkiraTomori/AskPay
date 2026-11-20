@@ -36,6 +36,9 @@ export type RefundCause =
 
 // system-design §5.5: the demo's worst case, honoured only with the env flag AND this prefix.
 export const DEMO_FAKE_PREFIX = '#demo-fake';
+// Demo of "the server is down, the payer claims the money back" (W5): honoured with the env flag
+// AND this prefix. The pipeline stops after the deposit, answers nothing and settles nothing.
+export const DEMO_STALL_PREFIX = '#demo-stall';
 
 export interface PipelineDeps {
   ctx: AskContext;
@@ -44,6 +47,7 @@ export interface PipelineDeps {
   corpus: CorpusService;
   retrieve: (question: string) => Candidate[];
   demoFakeCitation: boolean;
+  demoStall: boolean;
   // A Paid event this process read from a receipt over RPC: remembered so the result page need not
   // read the same receipt again (T-13, Q-13).
   onPaid?: (qid: Hex, settleTx: Hex, event: Extract<SettleEvent, { name: 'Paid' }>) => void;
@@ -233,9 +237,24 @@ export function createPipeline(deps: PipelineDeps): Pipeline {
   const demoQuestion = (question: string) =>
     deps.demoFakeCitation && question.startsWith(DEMO_FAKE_PREFIX);
 
+  // Questions the demo stall holds on purpose (DEMO_STALL). They stay in `ctx.inflight` for the life
+  // of the process: recovery skips what is in flight, so no sweep or scan answers, settles or
+  // refunds them. Only a restart drops the hold, and then recovery refunds an unanswered question
+  // (§5.6 D), so the API must stay off from the stall until the payer's claimRefund.
+  const stalled = new Set<Hex>();
+  const release = (qid: Hex) => {
+    if (!stalled.has(qid)) ctx.inflight.delete(qid);
+  };
+
   async function steps(qid: Hex): Promise<void> {
     const row = findQuestion(store, qid);
     if (row?.stage !== 'ANSWERING') return;
+
+    if (deps.demoStall && row.question.startsWith(DEMO_STALL_PREFIX)) {
+      stalled.add(qid);
+      logger.warn({ qid }, 'DEMO_STALL: holding this question; nothing will answer or settle it');
+      return;
+    }
 
     const demo = demoQuestion(row.question);
     const question = demo ? row.question.slice(DEMO_FAKE_PREFIX.length).trim() : row.question;
@@ -321,7 +340,7 @@ export function createPipeline(deps: PipelineDeps): Pipeline {
       // row keeps whatever it stored, and recovery reconciles it.
       logger.error({ qid, error: errorText(error) }, 'pipeline crashed; recovery will take over');
     } finally {
-      ctx.inflight.delete(qid);
+      release(qid);
     }
   }
 
@@ -344,7 +363,7 @@ export function createPipeline(deps: PipelineDeps): Pipeline {
         'late pipeline crashed; recovery will take over',
       );
     } finally {
-      ctx.inflight.delete(qid);
+      release(qid);
     }
   }
 

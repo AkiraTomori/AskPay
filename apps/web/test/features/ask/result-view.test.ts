@@ -2,7 +2,14 @@ import { questionResultSchema, type QuestionResult } from '@askpay/shared/api';
 import { describe, expect, it } from 'vitest';
 import { isSettled } from '@/components/question/status';
 import { hasUnverifiedCitation, toResultView, type ResultView } from '@/features/ask/result-view';
-import { citation, paidBody, refundedBody, resultBody, SETTLE_TX } from '../../helpers/ask-api';
+import {
+  citation,
+  paidBody,
+  QID,
+  refundedBody,
+  resultBody,
+  SETTLE_TX,
+} from '../../helpers/ask-api';
 
 const parse = (body: Record<string, unknown>): QuestionResult => questionResultSchema.parse(body);
 const view = (
@@ -10,6 +17,7 @@ const view = (
   over: { loadFailed?: boolean; polling?: boolean } = {},
 ) =>
   toResultView({
+    qid: QID,
     result: parse(body),
     notFound: false,
     loadFailed: over.loadFailed ?? false,
@@ -33,13 +41,31 @@ describe('isSettled (design W3 §3)', () => {
 describe('toResultView: the state table (design W3 §4)', () => {
   it('no data: loading, load failed, not found', () => {
     expect(
-      toResultView({ result: undefined, notFound: false, polling: true, loadFailed: false }).kind,
+      toResultView({
+        qid: QID,
+        result: undefined,
+        notFound: false,
+        polling: true,
+        loadFailed: false,
+      }).kind,
     ).toBe('loading');
     expect(
-      toResultView({ result: undefined, notFound: false, polling: true, loadFailed: true }).kind,
+      toResultView({
+        qid: QID,
+        result: undefined,
+        notFound: false,
+        polling: true,
+        loadFailed: true,
+      }).kind,
     ).toBe('loadFailed');
     expect(
-      toResultView({ result: undefined, notFound: true, polling: true, loadFailed: false }).kind,
+      toResultView({
+        qid: QID,
+        result: undefined,
+        notFound: true,
+        polling: true,
+        loadFailed: false,
+      }).kind,
     ).toBe('notFound');
   });
 
@@ -145,7 +171,7 @@ describe('toResultView: the state table (design W3 §4)', () => {
   it('CLAIMABLE: expired badge, overdue notice, no timeline, no button', () => {
     const v = question(view(resultBody({ stage: 'SETTLING', status: 'CLAIMABLE' })));
     expect(v.badge).toBe('expired');
-    expect(v.notice).toEqual({ kind: 'claimable' });
+    expect(v.notice).toMatchObject({ kind: 'claimable' });
     expect(v.timeline).toBeUndefined();
     expect(v.actions).toEqual([]);
   });
