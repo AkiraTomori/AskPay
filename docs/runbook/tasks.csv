@@ -20,7 +20,7 @@
 "W3","Akira","2026-11-16","P0","3","W2","Trang /questions/[qid]","CitationCard (dấu xác minh hai dòng khi verifiedOnChain, Q-10), StatusBadge, TxLink, cảnh báo khi REFUNDED","Đủ trạng thái ở ui-pages §4","AP-07","Done","PR #19",""
 "W4","Akira","2026-11-17","P1","3","A6","Dashboard","Thẻ số liệu + bảng gần nhất + eval","Khớp /stats","AP-08","Done","PR #20",""
 "W5","Akira","2026-11-17","P1","3","W3","Nhận lại tiền + /verify","claimRefund từ ví khi CLAIMABLE; trang /verify đối chiếu root","Demo được server tắt → tự rút","AP-06-AC03,AP-01-AC04","Done","feat/w5-refund-verify",""
-"E1","Akira","2026-11-18","P0","4","A5","Bộ eval","50 câu có nhãn Điều/Khoản; npm run eval; ghi results/latest.json","3 số liệu AP-09-AC02 có trong README","AP-09","Todo","",""
+"E1","Akira","2026-11-18","P0","4","A5","Bộ eval","50 câu có nhãn Điều/Khoản; npm run eval; ghi results/latest.json","3 số liệu AP-09-AC02 có trong README","AP-09","Done","feat/e1-eval",""
 "G1","Akira","2026-11-18","P2","3","A5","Buyer agent (tuỳ chọn)","CLI ký và trả qua x402 escrow, trần ngân sách","Dừng đúng khi vượt trần","AP-10","Todo","",""
 "O1","Akira","2026-11-19","P0","4","W5,E1","Deploy + README + đóng băng","Vercel + Render/Railway; README theo checklist","Link public chạy ở ẩn danh","—","Todo","",""
 "O2","Akira","2026-11-20","P0","3","O1","Slide","Theo pitch.md: vấn đề → giải pháp → demo → kỹ thuật → Avalanche → roadmap","Link Canva/Google Slides công khai","—","Todo","",""
