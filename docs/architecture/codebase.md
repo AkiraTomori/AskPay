@@ -2,7 +2,7 @@
 
 > File này mô tả cây thư mục, ranh giới module và luồng phụ thuộc. **Cách viết code** (đặt tên, lỗi, test) nằm ở [`../conventions/`](../conventions/README.md). Lý do của từng lựa chọn công nghệ nằm ở [`system-design.md` §3](./system-design.md#3-quyết-định-công-nghệ-và-đánh-đổi).
 >
-> **Trạng thái:** đang áp dụng (15/11/2026). Đã scaffold `contracts/`, `packages/shared`, `packages/corpus`, `apps/api` và `apps/web`; `apps/agent` (tuỳ chọn) chưa có; `eval/` có bộ câu hỏi và mã chạy (E1, kết quả live chưa chạy).
+> **Trạng thái:** đang áp dụng (15/11/2026). Đã scaffold `contracts/`, `packages/shared`, `packages/corpus`, `apps/api` và `apps/web`; `apps/agent` (tuỳ chọn) chưa có; `eval/` có bộ câu hỏi và mã chạy (E1, đã chạy live 20/11/2026, kết quả ở `eval/results/latest.json`).
 
 ## 1. Tóm tắt quyết định
 

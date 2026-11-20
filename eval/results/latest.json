@@ -1,0 +1,494 @@
+{
+  "runAt": "2026-11-20",
+  "commit": "17b9f58",
+  "citationAccuracy": 0.85,
+  "checkerPassRate": 0.9,
+  "outOfScopeCorrect": 1,
+  "status": "final",
+  "dirty": false,
+  "provider": "groq",
+  "model": "qwen/qwen3.8-27b",
+  "corpusRoot": "0xda14ddb6540051a3538091a88a0a68bd39b2a8f4e6d218bdaf6b372dd65517a5",
+  "questionsHash": "0x75879f7ae32cf1002bd1cd023110b3ac1638c556c186546de1fdbf323dbc35ca",
+  "promptsHash": "0xbe20d54f1366a376c8b6a601e96b4dcb7e30a62a52afa9ab95f4a19d4aca206c",
+  "resumedFromCheckpoint": 0,
+  "counts": {
+    "inScope": 40,
+    "outOfScope": 10,
+    "infra": 0,
+    "byOutcome": {
+      "passed": 36,
+      "rejected": {
+        "C2": 0,
+        "C3": 0,
+        "C4": 0
+      },
+      "answer-failed": 0,
+      "no-basis": 14,
+      "no-citation": 0,
+      "checker-failed": 0
+    }
+  },
+  "retrievalRecall": 0.875,
+  "citationPrecision": 0.8695652173913043,
+  "byGroup": {
+    "thu-viec": {
+      "n": 10,
+      "citationAccuracy": 1,
+      "checkerPassRate": 1
+    },
+    "lam-them-gio": {
+      "n": 10,
+      "citationAccuracy": 0.9,
+      "checkerPassRate": 0.9
+    },
+    "nghi-viec": {
+      "n": 10,
+      "citationAccuracy": 0.5,
+      "checkerPassRate": 0.7
+    },
+    "luong": {
+      "n": 10,
+      "citationAccuracy": 1,
+      "checkerPassRate": 1
+    },
+    "ngoai-pham-vi": {
+      "n": 10,
+      "outOfScopeCorrect": 1
+    }
+  },
+  "questions": [
+    {
+      "id": "tv-01",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "25.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-02",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "25.0"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-03",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "25.3"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-04",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "26.0"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-05",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "27.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-06",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "27.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-07",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "24.3"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-08",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "25.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-09",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "24.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "tv-10",
+      "group": "thu-viec",
+      "outcome": "passed",
+      "cited": [
+        "25.4"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-01",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "107.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-02",
+      "group": "lam-them-gio",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": false
+    },
+    {
+      "id": "lt-03",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "98.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-04",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "107.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-05",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "106.0"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-06",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "98.2",
+        "98.3",
+        "98.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-07",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "109.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-08",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "113.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-09",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "114.0"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lt-10",
+      "group": "lam-them-gio",
+      "outcome": "passed",
+      "cited": [
+        "108.0",
+        "108.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "nv-01",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "35.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "nv-02",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "35.1",
+        "40.2"
+      ],
+      "hit": false
+    },
+    {
+      "id": "nv-03",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "40.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "nv-04",
+      "group": "nghi-viec",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": false
+    },
+    {
+      "id": "nv-05",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "46.1",
+        "46.3",
+        "46.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "nv-06",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "47.1",
+        "47.3",
+        "47.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "nv-07",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "137.3"
+      ],
+      "hit": false
+    },
+    {
+      "id": "nv-08",
+      "group": "nghi-viec",
+      "outcome": "passed",
+      "cited": [
+        "125.4"
+      ],
+      "hit": true
+    },
+    {
+      "id": "nv-09",
+      "group": "nghi-viec",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": false
+    },
+    {
+      "id": "nv-10",
+      "group": "nghi-viec",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": false
+    },
+    {
+      "id": "lg-01",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "90.2",
+        "91.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-02",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "97.4"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-03",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "97.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-04",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "102.3"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-05",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "99.1"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-06",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "94.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-07",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "95.3"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-08",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "113.5",
+        "101.3"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-09",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "90.3"
+      ],
+      "hit": true
+    },
+    {
+      "id": "lg-10",
+      "group": "luong",
+      "outcome": "passed",
+      "cited": [
+        "104.2"
+      ],
+      "hit": true
+    },
+    {
+      "id": "np-01",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-02",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-03",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-04",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-05",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-06",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-07",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-08",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-09",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    },
+    {
+      "id": "np-10",
+      "group": "ngoai-pham-vi",
+      "outcome": "no-basis",
+      "cited": [],
+      "hit": true
+    }
+  ]
+}
