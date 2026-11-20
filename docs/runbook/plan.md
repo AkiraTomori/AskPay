@@ -24,10 +24,10 @@
 
 Hành vi chi tiết: [`../spec/askpay-v1.md`](../spec/askpay-v1.md).
 
-## 3. Hiện trạng (15/11)
+## 3. Hiện trạng (20/11)
 
-- Đã có mã và đã merge: parse và Merkle tree của Bộ luật Lao động (C1, C2), contract `AskPayEscrow` đã deploy Fuji (K1 đến K4), nền móng (F1), `apps/api` từ báo giá đến indexer và `/stats` (A1 đến A6), web shell, hỏi và trang kết quả (W1 đến W3). Chi tiết và PR ở [tasks.csv](./tasks.csv).
-- Đang làm: W4 (dashboard) trên nhánh `feat/w4-dashboard`. Chưa làm: W5, E1, G1 và O1 đến O4.
+- Đã có mã và đã merge: parse và Merkle tree của Bộ luật Lao động (C1, C2), contract `AskPayEscrow` đã deploy Fuji (K1 đến K4), nền móng (F1), `apps/api` từ báo giá đến indexer và `/stats` (A1 đến A6), web shell, hỏi và trang kết quả (W1 đến W3), dashboard (W4), nhận lại tiền và `/verify` (W5), bộ eval (E1), buyer agent (G1, đã chạy live trên Fuji 20/11). Chi tiết và PR ở [tasks.csv](./tasks.csv).
+- Chưa đóng: O1 đến O4 (README đã merge ở PR #23; phần còn lại của O1 xem [tasks.csv](./tasks.csv)).
 - Quyết định Q-01…Q-13 đã chốt. Q-08 (buyer agent) chốt 20/11/2026: làm G1 **sau** E1 và O1, chỉ nếu còn thời gian trước hạn nộp.
 
 ## 4. Quyết định cần chốt trước khi code
