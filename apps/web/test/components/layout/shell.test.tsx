@@ -30,7 +30,11 @@ describe('app shell', () => {
     renderShell(createTestConfig());
     const nav = screen.getByRole('navigation', { name: messages.mainNav });
     const links = within(nav).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual([messages.navAsk, messages.navDashboard]);
+    expect(links.map((link) => link.textContent)).toEqual([
+      messages.navAsk,
+      messages.navDashboard,
+      messages.navVerify,
+    ]);
     expect(links[0]).toHaveAttribute('aria-current', 'page');
   });
 

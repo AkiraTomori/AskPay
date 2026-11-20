@@ -242,6 +242,15 @@ Khi bật, `ask.service` thay `textHash` của trích dẫn đầu tiên bằng 
 
 Kịch bản này mô phỏng trường hợp xấu nhất: provider và checker cùng sai. Nó cho thấy chain vẫn chặn được.
 
+### 5.5b Chế độ demo `DEMO_STALL` (W5)
+
+Chỉ bật bằng biến môi trường `DEMO_STALL=true` **và** câu hỏi có tiền tố `#demo-stall` (mặc định `false`). Dùng để dựng đoạn "server tắt → người hỏi tự nhận lại tiền" (spec AP-06-AC03, [demo runbook §2b](../runbook/demo.md)). Owner chọn phương án thêm cờ này khi duyệt W5 (15/11/2026, U-25).
+
+- Pipeline dừng ngay sau khi tiền vào escrow: không gọi LLM, không ký, không gửi `settle` hay `refundByProvider`. Request POST vẫn trả `202` "đã giữ tiền" như thường, nên web chuyển sang trang câu hỏi.
+- Câu bị giữ ở lại trong `ctx.inflight` cho tới khi process dừng. `ask.recovery` bỏ qua mọi câu đang trong `inflight`, nên cả lượt quét định kỳ (`SWEEP_INTERVAL_MS` = 15 giây) lẫn indexer (`onDeposited`) đều không đụng tới nó.
+- **Khởi động lại API thì hết giữ.** Lúc khởi động `ask.recovery` thấy câu đang `ANSWERING` mà không có gì để gửi lại, nên hoàn tiền `ANSWER_FAILED` qua `refundByProvider` (§5.6 D). Vì vậy khi demo, API phải **tắt từ lúc giữ tiền tới lúc người hỏi `claimRefund` xong**, rồi mới bật lại (khi đó `syncFromChain` và indexer thấy câu đã `Refunded`).
+- Cờ không đổi hợp đồng, ABI hay API công khai. Không bật ngoài lúc quay demo.
+
 ### 5.6 Đường lỗi sau khi giữ tiền
 
 **Mục tiêu:**

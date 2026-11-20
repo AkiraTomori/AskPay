@@ -14,7 +14,11 @@ describe('nav', () => {
     renderShell(createTestConfig());
     const nav = screen.getByRole('navigation', { name: messages.mainNav });
     const links = within(nav).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual([messages.navAsk, messages.navDashboard]);
+    expect(links.map((link) => link.textContent)).toEqual([
+      messages.navAsk,
+      messages.navDashboard,
+      messages.navVerify,
+    ]);
     expect(within(nav).getByRole('link', { name: messages.navDashboard })).toHaveAttribute(
       'aria-current',
       'page',

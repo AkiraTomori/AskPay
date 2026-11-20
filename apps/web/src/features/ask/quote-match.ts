@@ -2,7 +2,7 @@
 // `indexOf` is not enough: the quote went through normalizeText (NFC, every whitespace run -> one
 // space, trimmed) and the text still has its line breaks between points a), b), c).
 //
-// The web does not import @askpay/corpus. This reads the same rule from the matching side: a quote
+// The web does not import the corpus code (only its small `./meta` file, W5). This reads the same rule from the matching side: a quote
 // word sequence separated by `\s+`. Test W3-E14 locks it to normalizeText on the real corpus.
 export type QuoteRange = { start: number; end: number };
 

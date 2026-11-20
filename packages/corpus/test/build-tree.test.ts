@@ -6,6 +6,7 @@ import {
   buildCorpus,
   buildFoundryVectors,
   serializeCorpusKhoans,
+  serializeMeta,
   serializeRoot,
   serializeTree,
   serializeVectors,
@@ -45,9 +46,22 @@ describe('reproducibility (AP-01-AC01)', () => {
     expect(read('data/blld-2019.khoan.json')).toBe(serializeCorpusKhoans(build.khoans));
     expect(read('data/blld-2019.tree.json')).toBe(serializeTree(build.tree));
     expect(read('data/blld-2019.root.txt')).toBe(serializeRoot(build.root));
+    expect(read('data/blld-2019.meta.json')).toBe(serializeMeta(build));
     expect(read('data/blld-2019.foundry-vectors.json')).toBe(
       serializeVectors(buildFoundryVectors(build)),
     );
+  });
+
+  it('W5 U-22: meta.json carries the same root as root.txt and the real counts, no date', () => {
+    const meta = JSON.parse(read('data/blld-2019.meta.json')) as Record<string, unknown>;
+    expect(meta).toEqual({
+      lawName: 'Bộ luật Lao động 2019 (45/2019/QH14)',
+      lawId: BLLD_2019_LAW_ID,
+      root: read('data/blld-2019.root.txt').trim(),
+      dieuCount: new Set(build.khoans.map((k) => k.dieu)).size,
+      khoanCount: build.khoans.length,
+    });
+    expect(Object.keys(meta)).toEqual(['lawName', 'lawId', 'root', 'dieuCount', 'khoanCount']);
   });
 
   it('covers every Khoản the parser found', () => {

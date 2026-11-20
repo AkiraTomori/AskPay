@@ -2,7 +2,7 @@
 // nothing: payment.service and ask.service use what it reads.
 import { parseAbi, parseEventLogs, parseSignature, type Address, type Hex, type Log } from 'viem';
 import { askPayEscrowAbi, fujiDeployment } from '@askpay/shared/abi';
-import type { RefundReasonCode } from '@askpay/shared/errors';
+import { REFUND_REASON_BY_INDEX, type RefundReasonCode } from '@askpay/shared/errors';
 import type { Citation } from '@askpay/shared/leaf';
 import type { ChainClients } from '../../shared/chain.js';
 import type {
@@ -16,16 +16,9 @@ import type {
 export type OnChainStatus = 'None' | 'Open' | 'Paid' | 'Refunded';
 const STATUSES: readonly OnChainStatus[] = ['None', 'Open', 'Paid', 'Refunded'];
 
-// Same order as `enum RefundReason` in AskPayEscrow.sol; a test reads the Solidity source to keep
-// them equal. Index 0 (None) never appears in a Refunded event.
-export const REFUND_REASON_BY_INDEX: readonly (RefundReasonCode | 'NONE')[] = [
-  'NONE',
-  'NO_CITATION',
-  'INVALID_CITATION',
-  'CHECKER_REJECTED',
-  'ANSWER_FAILED',
-  'TIMEOUT',
-];
+// Moved to @askpay/shared (the web reads the same order for a claimRefund receipt, W5). A test
+// still reads the Solidity source to keep it equal.
+export { REFUND_REASON_BY_INDEX };
 
 // Gas the provider wallet must be able to pay for one question: a deposit now and a settle later.
 // Generous on purpose; Fuji fees are tiny, and refusing early costs nothing (AP-03-AC07).

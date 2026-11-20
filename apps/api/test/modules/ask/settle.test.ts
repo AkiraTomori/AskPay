@@ -167,6 +167,41 @@ describe('AP-05-AC03 a citation the chain cannot prove is refunded INVALID_CITAT
   });
 });
 
+describe('W5 DEMO_STALL holds a question after the deposit so the payer can claim the refund (AP-06)', () => {
+  const STALL = '#demo-stall Thời gian thử việc tối đa là bao lâu?';
+
+  it('holds it: no answer, no settle, and neither a sweep nor an indexer scan touches it', async () => {
+    const test = createTestApp({ demoStall: true });
+    const { response, qid } = await ask(test, STALL);
+
+    // The request is answered at once with "held" (202), so the web redirects to the result page.
+    expect(response.status).toBe(202);
+    expect(response.body.data).toMatchObject({ qid, stage: 'ANSWERING' });
+    expect(test.llm.state.calls).toHaveLength(0);
+
+    await test.recovery.sweep();
+    await test.indexer.sweep();
+    expect(await test.recovery.onDeposited(qid)).toBe(true);
+
+    expect(stageOf(test, qid)).toBe('ANSWERING');
+    expect(sentFns(test.chain)).toEqual(['deposit']);
+    expect(test.chain.questions.get(qid)?.status).toBe('Open');
+    expect(test.llm.state.calls).toHaveLength(0);
+  });
+
+  it('does nothing without the environment flag: the prefix is just text', async () => {
+    const test = createTestApp({ demoStall: false });
+    const { response } = await ask(test, STALL);
+    expect(response.body.data).toMatchObject({ stage: 'PAID' });
+  });
+
+  it('the flag alone does nothing for an ordinary question', async () => {
+    const test = createTestApp({ demoStall: true });
+    const { response } = await ask(test);
+    expect(response.body.data).toMatchObject({ stage: 'PAID' });
+  });
+});
+
 describe('AP-05-AC05 a verdict the chain does not accept never settles', () => {
   it('a checker key that is not the escrow checker: SETTLE_BUG, refunded ANSWER_FAILED, no Paid', async () => {
     const wrong = privateKeyToAccount(`0x${'44'.repeat(32)}`);

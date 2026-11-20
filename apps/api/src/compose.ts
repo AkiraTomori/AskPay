@@ -21,7 +21,7 @@ import type { PaymentChain } from './modules/payment/payment.service.js';
 import { createRetrieval } from './modules/retrieval/retrieval.service.js';
 
 export interface ComposeDeps {
-  config: Pick<Config, 'priceUnits' | 'quoteTtlSeconds' | 'demoFakeCitation'>;
+  config: Pick<Config, 'priceUnits' | 'quoteTtlSeconds' | 'demoFakeCitation' | 'demoStall'>;
   store: Store;
   chain: PaymentChain;
   logger: Logger;
@@ -76,6 +76,7 @@ export function compose(deps: ComposeDeps): Composed {
     corpus,
     retrieve: createRetrieval(corpus.docs()),
     demoFakeCitation: deps.config.demoFakeCitation,
+    demoStall: deps.config.demoStall,
     onPaid: verifier.remember,
   });
   const recovery = createRecovery({

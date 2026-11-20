@@ -245,7 +245,7 @@ describe('Q-04 refunded questions', () => {
 });
 
 describe('CLAIMABLE', () => {
-  it('W3-E11: overdue badge and sentence, no button, slow poll; a later PAID replaces the page', async () => {
+  it('W3-E11: overdue badge and sentence, the claim button (W5), slow poll; a later PAID replaces the page', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { gets } = renderPage(
       resultBody({ stage: 'SETTLING', status: 'CLAIMABLE', amount: '50000' }),
@@ -253,7 +253,7 @@ describe('CLAIMABLE', () => {
     );
     expect(await screen.findByText(askMessages.badge.expired)).toBeInTheDocument();
     expect(screen.getByText(askMessages.statusClaimable)).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: askMessages.connectToClaim })).toBeInTheDocument();
     expect(gets()).toBe(1);
 
     await act(() => vi.advanceTimersByTimeAsync(5000));

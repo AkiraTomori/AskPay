@@ -67,6 +67,11 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+  // Demo only (system-design §5.5): honoured for a question that starts with "#demo-stall".
+  DEMO_STALL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   CORPUS_PATH: z.string().min(1).optional(),
   // How many blocks one eth_getLogs may span on this RPC. The public Fuji RPC allows 100.
   LOG_RANGE_BLOCKS: z.coerce.number().int().min(1).max(10_000).default(100),
@@ -87,6 +92,7 @@ export interface Config {
   trustProxyHops: number;
   llm: LlmConfig;
   demoFakeCitation: boolean;
+  demoStall: boolean;
   corpusPath: string | undefined;
   logRangeBlocks: number;
   scanLookbackBlocks: number;
@@ -129,6 +135,7 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
       jsonMode: value.LLM_JSON_MODE,
     },
     demoFakeCitation: value.DEMO_FAKE_CITATION,
+    demoStall: value.DEMO_STALL,
     corpusPath: value.CORPUS_PATH,
     logRangeBlocks: value.LOG_RANGE_BLOCKS,
     scanLookbackBlocks: value.SCAN_LOOKBACK_BLOCKS,
