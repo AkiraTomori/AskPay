@@ -4,7 +4,7 @@
 > - Hành vi người dùng thấy được và tiêu chí chấp nhận nằm ở [`../spec/askpay-v1.md`](../spec/askpay-v1.md). Khi file này lệch với spec về **hành vi**, spec thắng.
 > - Chữ ký hàm của contract: [`contracts.md`](./contracts.md) thắng. Hình dạng endpoint: [`api.md`](./api.md) thắng.
 >
-> **Trạng thái:** ĐANG ÁP DỤNG (15/11/2026): owner đã chốt các quyết định kỹ thuật và duyệt từng slice; mã A1–W3 đã được viết theo tài liệu này. Quyết định sản phẩm là `Q-xx` trong spec §6 (chỉ Q-08 còn mở). Quyết định kỹ thuật là `T-xx` ở §3 dưới đây.
+> **Trạng thái:** ĐANG ÁP DỤNG (15/11/2026): owner đã chốt các quyết định kỹ thuật và duyệt từng slice; mã A1–W3 đã được viết theo tài liệu này. Quyết định sản phẩm là `Q-xx` trong spec §6 (đã chốt hết; Q-08 chốt 20/11/2026). Quyết định kỹ thuật là `T-xx` ở §3 dưới đây.
 
 ## Mục lục
 

@@ -1,0 +1,552 @@
+{
+  "reviewed": {
+    "by": "owner",
+    "at": "2026-11-20"
+  },
+  "questions": [
+    {
+      "id": "tv-01",
+      "group": "thu-viec",
+      "question": "Vị trí cần trình độ đại học thì được thử việc tối đa bao nhiêu ngày?",
+      "gold": [
+        {
+          "dieu": 25,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "tv-02",
+      "group": "thu-viec",
+      "question": "Công ty có được cho tôi thử việc hai lần cho cùng một vị trí không?",
+      "gold": [
+        {
+          "dieu": 25,
+          "khoan": 0
+        }
+      ]
+    },
+    {
+      "id": "tv-03",
+      "group": "thu-viec",
+      "question": "Nhân viên nghiệp vụ trình độ trung cấp được thử việc tối đa bao lâu?",
+      "gold": [
+        {
+          "dieu": 25,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "tv-04",
+      "group": "thu-viec",
+      "question": "Lương thử việc có được trả thấp hơn lương chính thức không?",
+      "gold": [
+        {
+          "dieu": 26,
+          "khoan": 0
+        }
+      ]
+    },
+    {
+      "id": "tv-05",
+      "group": "thu-viec",
+      "question": "Đang thử việc mà tôi muốn nghỉ ngay thì có phải báo trước không?",
+      "gold": [
+        {
+          "dieu": 27,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "tv-06",
+      "group": "thu-viec",
+      "question": "Hết thời gian thử việc mà tôi đạt yêu cầu thì công ty phải làm gì?",
+      "gold": [
+        {
+          "dieu": 27,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "tv-07",
+      "group": "thu-viec",
+      "question": "Tôi ký hợp đồng chỉ hai tuần thì công ty có bắt thử việc được không?",
+      "gold": [
+        {
+          "dieu": 24,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "tv-08",
+      "group": "thu-viec",
+      "question": "Vị trí kế toán cần bằng đại học, công ty bảo thử việc 90 ngày thì có đúng không?",
+      "gold": [
+        {
+          "dieu": 25,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "tv-09",
+      "group": "thu-viec",
+      "question": "Có bắt buộc phải ký hợp đồng thử việc riêng, hay ghi thử việc ngay trong hợp đồng lao động cũng được?",
+      "gold": [
+        {
+          "dieu": 24,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "tv-10",
+      "group": "thu-viec",
+      "question": "Công việc lao động phổ thông không cần bằng cấp thì thử việc được mấy ngày?",
+      "gold": [
+        {
+          "dieu": 25,
+          "khoan": 4
+        }
+      ]
+    },
+    {
+      "id": "lt-01",
+      "group": "lam-them-gio",
+      "question": "Mỗi ngày tôi bị yêu cầu làm thêm tối đa bao nhiêu giờ?",
+      "gold": [
+        {
+          "dieu": 107,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lt-02",
+      "group": "lam-them-gio",
+      "question": "Quản lý bắt tăng ca mà tôi không đồng ý thì có đúng luật không?",
+      "gold": [
+        {
+          "dieu": 107,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lt-03",
+      "group": "lam-them-gio",
+      "question": "Đi làm thêm vào ngày nghỉ hằng tuần thì được trả ít nhất bao nhiêu phần trăm lương?",
+      "gold": [
+        {
+          "dieu": 98,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "lt-04",
+      "group": "lam-them-gio",
+      "question": "Một năm tôi được làm thêm tối đa bao nhiêu giờ?",
+      "gold": [
+        {
+          "dieu": 107,
+          "khoan": 2
+        },
+        {
+          "dieu": 107,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "lt-05",
+      "group": "lam-them-gio",
+      "question": "Giờ làm việc ban đêm được tính từ mấy giờ đến mấy giờ?",
+      "gold": [
+        {
+          "dieu": 106,
+          "khoan": 0
+        }
+      ]
+    },
+    {
+      "id": "lt-06",
+      "group": "lam-them-gio",
+      "question": "Làm thêm vào ban đêm của ngày thường thì được tính lương thế nào?",
+      "gold": [
+        {
+          "dieu": 98,
+          "khoan": 1
+        },
+        {
+          "dieu": 98,
+          "khoan": 2
+        },
+        {
+          "dieu": 98,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "lt-07",
+      "group": "lam-them-gio",
+      "question": "Làm việc liên tục từ sáng tới chiều thì được nghỉ giữa giờ ít nhất bao lâu?",
+      "gold": [
+        {
+          "dieu": 109,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "lt-08",
+      "group": "lam-them-gio",
+      "question": "Tôi mới làm 6 tháng thì được nghỉ phép năm mấy ngày?",
+      "gold": [
+        {
+          "dieu": 113,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lt-09",
+      "group": "lam-them-gio",
+      "question": "Làm 10 năm ở một công ty thì ngày phép được cộng thêm mấy ngày?",
+      "gold": [
+        {
+          "dieu": 114,
+          "khoan": 0
+        }
+      ]
+    },
+    {
+      "id": "lt-10",
+      "group": "lam-them-gio",
+      "question": "Trường hợp nào công ty được bắt làm thêm không giới hạn số giờ mà tôi không được từ chối?",
+      "gold": [
+        {
+          "dieu": 108,
+          "khoan": 0
+        },
+        {
+          "dieu": 108,
+          "khoan": 1
+        },
+        {
+          "dieu": 108,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "nv-01",
+      "group": "nghi-viec",
+      "question": "Tôi ký hợp đồng 2 năm, muốn nghỉ việc thì phải báo trước bao lâu?",
+      "gold": [
+        {
+          "dieu": 35,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "nv-02",
+      "group": "nghi-viec",
+      "question": "Công ty nợ lương hai tháng, tôi nghỉ luôn không báo trước có được không?",
+      "gold": [
+        {
+          "dieu": 35,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "nv-03",
+      "group": "nghi-viec",
+      "question": "Nếu tôi nghỉ việc trái luật thì phải bồi thường những gì?",
+      "gold": [
+        {
+          "dieu": 40,
+          "khoan": 2
+        },
+        {
+          "dieu": 40,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "nv-04",
+      "group": "nghi-viec",
+      "question": "Bị công ty cho nghỉ việc trái luật thì tôi được đền bù những gì?",
+      "gold": [
+        {
+          "dieu": 41,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "nv-05",
+      "group": "nghi-viec",
+      "question": "Làm đủ 5 năm rồi thôi việc thì trợ cấp thôi việc được tính thế nào?",
+      "gold": [
+        {
+          "dieu": 46,
+          "khoan": 1
+        },
+        {
+          "dieu": 46,
+          "khoan": 2
+        },
+        {
+          "dieu": 46,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "nv-06",
+      "group": "nghi-viec",
+      "question": "Công ty cắt giảm nhân sự vì khó khăn kinh tế thì tôi được trợ cấp mất việc làm bao nhiêu?",
+      "gold": [
+        {
+          "dieu": 47,
+          "khoan": 1
+        },
+        {
+          "dieu": 42,
+          "khoan": 5
+        }
+      ]
+    },
+    {
+      "id": "nv-07",
+      "group": "nghi-viec",
+      "question": "Tôi đang mang thai thì công ty có được đơn phương cho tôi nghỉ việc không?",
+      "gold": [
+        {
+          "dieu": 37,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "nv-08",
+      "group": "nghi-viec",
+      "question": "Tự ý bỏ việc bao nhiêu ngày thì bị sa thải?",
+      "gold": [
+        {
+          "dieu": 125,
+          "khoan": 4
+        }
+      ]
+    },
+    {
+      "id": "nv-09",
+      "group": "nghi-viec",
+      "question": "Tôi vừa nghỉ việc mà công ty còn giữ sổ bảo hiểm và bằng gốc của tôi, họ có được làm vậy không?",
+      "gold": [
+        {
+          "dieu": 48,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "nv-10",
+      "group": "nghi-viec",
+      "question": "Công ty muốn cho tôi nghỉ vì thường xuyên không hoàn thành công việc thì phải báo trước bao lâu?",
+      "gold": [
+        {
+          "dieu": 36,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lg-01",
+      "group": "luong",
+      "question": "Lương tôi nhận thấp hơn mức tối thiểu vùng thì có hợp pháp không?",
+      "gold": [
+        {
+          "dieu": 90,
+          "khoan": 2
+        },
+        {
+          "dieu": 91,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lg-02",
+      "group": "luong",
+      "question": "Trường hợp bất khả kháng, công ty được trả lương chậm tối đa bao nhiêu ngày?",
+      "gold": [
+        {
+          "dieu": 97,
+          "khoan": 4
+        }
+      ]
+    },
+    {
+      "id": "lg-03",
+      "group": "luong",
+      "question": "Người hưởng lương theo tháng được trả lương mấy lần mỗi tháng?",
+      "gold": [
+        {
+          "dieu": 97,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lg-04",
+      "group": "luong",
+      "question": "Công ty được khấu trừ tối đa bao nhiêu phần trăm lương hằng tháng của tôi để bồi thường thiệt hại?",
+      "gold": [
+        {
+          "dieu": 102,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "lg-05",
+      "group": "luong",
+      "question": "Công ty phải ngừng việc do lỗi của họ thì tôi có được trả lương không?",
+      "gold": [
+        {
+          "dieu": 99,
+          "khoan": 1
+        }
+      ]
+    },
+    {
+      "id": "lg-06",
+      "group": "luong",
+      "question": "Công ty có quyền bắt tôi dùng lương để mua hàng của công ty không?",
+      "gold": [
+        {
+          "dieu": 94,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "lg-07",
+      "group": "luong",
+      "question": "Mỗi lần nhận lương công ty có phải đưa bảng kê chi tiết cho tôi không?",
+      "gold": [
+        {
+          "dieu": 95,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "lg-08",
+      "group": "luong",
+      "question": "Khi nghỉ phép năm tôi có được ứng lương trước không?",
+      "gold": [
+        {
+          "dieu": 101,
+          "khoan": 3
+        },
+        {
+          "dieu": 113,
+          "khoan": 5
+        }
+      ]
+    },
+    {
+      "id": "lg-09",
+      "group": "luong",
+      "question": "Nam và nữ làm cùng một công việc thì có phải được trả lương như nhau không?",
+      "gold": [
+        {
+          "dieu": 90,
+          "khoan": 3
+        }
+      ]
+    },
+    {
+      "id": "lg-10",
+      "group": "luong",
+      "question": "Quy chế thưởng cuối năm do ai quyết định?",
+      "gold": [
+        {
+          "dieu": 104,
+          "khoan": 2
+        }
+      ]
+    },
+    {
+      "id": "np-01",
+      "group": "ngoai-pham-vi",
+      "question": "Công thức làm bánh flan cần những nguyên liệu gì?",
+      "gold": []
+    },
+    {
+      "id": "np-02",
+      "group": "ngoai-pham-vi",
+      "question": "Không đội mũ bảo hiểm khi đi xe máy bị phạt bao nhiêu tiền?",
+      "gold": []
+    },
+    {
+      "id": "np-03",
+      "group": "ngoai-pham-vi",
+      "question": "Thủ tục đăng ký kết hôn cần những giấy tờ gì?",
+      "gold": []
+    },
+    {
+      "id": "np-04",
+      "group": "ngoai-pham-vi",
+      "question": "Thu nhập 30 triệu một tháng thì phải nộp thuế thu nhập cá nhân bao nhiêu?",
+      "gold": []
+    },
+    {
+      "id": "np-05",
+      "group": "ngoai-pham-vi",
+      "question": "Giá vàng hôm nay là bao nhiêu một chỉ?",
+      "gold": []
+    },
+    {
+      "id": "np-06",
+      "group": "ngoai-pham-vi",
+      "question": "Điều kiện để thành lập công ty trách nhiệm hữu hạn là gì?",
+      "gold": []
+    },
+    {
+      "id": "np-07",
+      "group": "ngoai-pham-vi",
+      "question": "Người lao động phải đóng bảo hiểm xã hội bằng bao nhiêu phần trăm tiền lương?",
+      "gold": []
+    },
+    {
+      "id": "np-08",
+      "group": "ngoai-pham-vi",
+      "question": "Đội nào vô địch World Cup 2022?",
+      "gold": []
+    },
+    {
+      "id": "np-09",
+      "group": "ngoai-pham-vi",
+      "question": "Thủ tục sang tên sổ đỏ khi mua đất cần những gì?",
+      "gold": []
+    },
+    {
+      "id": "np-10",
+      "group": "ngoai-pham-vi",
+      "question": "Khi ly hôn thì tài sản chung được chia như thế nào?",
+      "gold": []
+    }
+  ]
+}

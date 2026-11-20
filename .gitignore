@@ -25,6 +25,11 @@ contracts/broadcast/**/dry-run/
 contracts/broadcast/**/run-[0-9]*.json
 contracts/broadcast/**/*.lock
 
+# Eval: only results/latest.json is committed
+eval/results/draft.json
+eval/results/.checkpoint.json
+eval/results/*.tmp
+
 # Local data
 *.sqlite
 *.sqlite-journal
