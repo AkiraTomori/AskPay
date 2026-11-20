@@ -72,6 +72,7 @@ Tất cả là giao dịch gọi vào contract ở trên, chạy ngày 14–20/1
 | Kết quả | Tx chốt |
 |---|---|
 | `Paid`, câu hỏi bình thường (chạy bằng script `e2e:ask`) | [`0x0ed41b3a…5d58d`](https://testnet.snowtrace.io/tx/0x0ed41b3a49e89d92bd9e0011ea7dedaa29bfa75ae89a45188c0dbbd84cf5d58d) |
+| `Paid`, trả bằng buyer agent (`npm run agent`, trần 0,20 USDC) | [`0x19d4f4df…93c2c`](https://testnet.snowtrace.io/tx/0x19d4f4dffff7a5c785ec358f7f971bd9d25408a6ccd5964aea6ad71becd93c2c) |
 | `Paid`, hỏi từ trình duyệt bằng ví Core | [`0xf64dba75…83323`](https://testnet.snowtrace.io/tx/0xf64dba75ae0fcc757c8eefdd8e1aea57cd014fb2a56f16b2faf5ba9588583323) |
 | `Refunded`, lý do `NoCitation` (câu ngoài phạm vi, không có căn cứ) | [`0x623c4f92…0877a`](https://testnet.snowtrace.io/tx/0x623c4f92fbc64a1061a274db7c53af8f621a6bba52b22c6d9265aaaafa10877a) |
 | `Refunded`, lý do `InvalidCitation` (**giả lập** server gian lận: gửi một Khoản có nội dung khác bản luật đã đăng ký, Merkle proof không khớp nên contract tự hoàn tiền dù checker ký `pass = true`) | [`0x00bfbcf3…ed4c3`](https://testnet.snowtrace.io/tx/0x00bfbcf39e9f8446f2b42f16ff73ea5aecb1fffaf571bbb7b57ee14b295ed4c3) |
@@ -120,6 +121,14 @@ npm run dev:web                     # web tại :3000
 
 **Chạy lại eval** (`npm run eval`) gọi LLM thật, không trả tiền on-chain, cần file `.env.poc` ở thư mục gốc (gitignore) có `LLM_PROVIDER=groq`, `LLM_MODEL=qwen/qwen3.8-27b` và `LLM_API_KEY`. Lệnh ghi đè `eval/results/latest.json` trong bản clone của bạn. Chi tiết các biến môi trường và sự cố thường gặp: [`docs/runbook/setup-and-bringup.md`](docs/runbook/setup-and-bringup.md).
 
+**Chạy buyer agent** (`apps/agent`): chương trình dòng lệnh gọi API như một client x402. Với từng câu, agent xin báo giá, kiểm báo giá có đúng escrow và token trên Fuji không, rồi mới ký và trả. Cần API đang chạy (`API_URL`, mặc định `http://localhost:4000`) và khoá ví người hỏi `E2E_PAYER_PRIVATE_KEY` trong `.env.e2e` ở thư mục gốc (gitignore; khoá không bao giờ nhận qua tham số dòng lệnh). Ví cần USDC Fuji.
+
+```bash
+npm run agent -- --budget 0.20 questions.txt   # mỗi dòng một câu hỏi; hoặc truyền câu hỏi trực tiếp
+```
+
+`--budget` bắt buộc (USDC). Khoản trả kế tiếp làm tổng vượt trần thì agent **dừng và không ký**, rồi liệt kê các câu chưa hỏi (mã thoát 2). Giá mỗi câu là 0,05 USDC trên testnet; câu bị hoàn tiền thì tiền về lại ví người hỏi.
+
 Không có bản chạy công khai: bằng chứng nằm ở video demo, Snowtrace, `forge test` và số eval ở trên.
 
 ## Cấu trúc repo
@@ -128,6 +137,7 @@ Không có bản chạy công khai: bằng chứng nằm ở video demo, Snowtra
 |---|---|
 | `apps/api` | Express 5: x402, retrieval, LLM, checker, settle, indexer, eval |
 | `apps/web` | Next.js + wagmi/viem: hỏi, kết quả, dashboard, nhận lại tiền, tự xác minh |
+| `apps/agent` | Buyer agent dòng lệnh (AP-10): tự xin báo giá, ký và trả qua x402 escrow, có trần ngân sách |
 | `packages/shared` | Zod schema, mã lỗi kèm câu tiếng Việt, ABI, mã hoá leaf Merkle |
 | `packages/corpus` | Tách Bộ luật Lao động 2019 thành Khoản, build Merkle tree |
 | `contracts` | `AskPayEscrow` (Foundry) và địa chỉ đã deploy |
