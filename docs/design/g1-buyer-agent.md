@@ -49,6 +49,8 @@ Guard là phần chặn rủi ro thật: nếu `API_URL` trỏ nhầm tới serv
 | `402 PAYMENT_INVALID`, `400`, `404` | Server báo chưa có tx; bỏ qua câu này (in lý do), sang câu kế | hoàn lại |
 | `503 CHAIN_UNAVAILABLE` | Dừng cả lượt (server không nhận được tiền lúc này) | hoàn lại |
 | `429 RATE_LIMITED` khi xin báo giá | Chờ rồi thử lại báo giá (chưa ký, an toàn); tối đa vài lần, rồi dừng | không |
+| `429 RATE_LIMITED` khi gửi trả (có envelope lỗi của API) | Bộ giới hạn chạy trước khi server đọc khoản trả nên chưa có gì đổi: chờ rồi **gửi lại đúng request đã ký** (cùng chữ ký, không ký lại), tối đa 3 lần. Hết lần thì **dừng cả lượt**, câu này nằm trong danh sách chưa hỏi. Một `429` không có envelope (proxy) không được tin: poll theo `qid`, giữ cam kết | hoàn lại khi hết lần thử; giữ nếu là `429` trần |
+| `409 QUESTION_MISMATCH` | Server kiểm trước khi gửi tiền; bỏ qua câu này, in lý do | hoàn lại |
 
 Mã thoát: `0` hoàn tất cả danh sách; `2` dừng vì trần; `1` dừng vì lỗi hoặc guard.
 

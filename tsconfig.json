@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/shared" },
     { "path": "packages/corpus" },
-    { "path": "apps/api" }
+    { "path": "apps/api" },
+    { "path": "apps/agent" }
   ]
 }
